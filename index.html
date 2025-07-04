@@ -202,6 +202,18 @@
                 <button class="back-button" id="backButton">Zpět na seznam modelů</button>
                 <button class="ar-button" id="arButton" disabled>Zobrazit v AR (pouze GLB)</button>
             </div>
+
+            <!-- Nový posuvník pro výšku modelu v AR -->
+            <div id="heightControl" class="mt-5 w-full max-w-sm" style="display: none;">
+                <label for="heightSlider" class="block text-sm font-medium text-gray-700 mb-2">Výška modelu v AR:</label>
+                <input type="range" id="heightSlider" min="-50" max="50" value="0" 
+                       class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer thumb-blue-500">
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>-0.5m</span>
+                    <span>0m</span>
+                    <span>+0.5m</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -220,6 +232,8 @@
         const errorMessage = document.getElementById('errorMessage');
         const backButton = document.getElementById('backButton');
         const arButton = document.getElementById('arButton');
+        const heightControl = document.getElementById('heightControl'); // Nový element pro posuvník
+        const heightSlider = document.getElementById('heightSlider');     // Nový element pro posuvník
 
         // Definice modelů s názvy, cestami a typy
         const models = [
@@ -233,8 +247,11 @@
             { name: "Udidlo", path: "./Udidlo.glb", type: "glb" },
             { name: "Lunicovitý závěsek", path: "./Zavesek1.glb", type: "glb" },
             { name: "Kolečkovitý závěsek", path: "./Zavesek2.glb", type: "glb" },
-            { name: "Závěsek", path: "./Zavesek3.glb", type: "glb" }
-            // Přidejte další modely podle potřeby
+            { name: "Závěsek", path: "./Zavesek3.glb", type: "glb" },
+            // Aktualizované a nové modely
+            { name: "Depot Jabloňany", path: "./jablonany.glb", type: "glb" },
+            { name: "Depot Boskovice úr. 1", path: "./boskovice.glb", type: "glb" }, // Změněn název tlačítka
+            { name: "Depot Boskovice úr. 2", path: "./depotboskovice2.glb", type: "glb" } // Nová položka
         ];
 
         /**
@@ -513,11 +530,17 @@
                 modelViewerElement.alt = model.name;
                 modelViewerElement.style.display = 'block'; // Zobrazíme model-viewer
                 arButton.disabled = false; // Povolíme AR tlačítko
-                // loadingMessage se skryje po události 'load' nebo se aktualizuje 'progress'
+                
+                heightControl.style.display = 'block'; // Zobrazíme posuvník pro výšku
+                heightSlider.value = 0; // Resetujeme posuvník
+                modelViewerElement.setAttribute('translation', '0 0 0'); // Resetujeme pozici modelu v AR
             } else {
                 // Pro OBJ a ZIP modely použijeme Three.js
                 canvasContainer.style.display = 'flex'; // Zobrazíme Three.js canvas
                 loadModelIntoThreeJS(model.path); // Načteme model do Three.js
+
+                heightControl.style.display = 'none'; // Skryjeme posuvník pro výšku
+                heightSlider.value = 0; // Resetujeme posuvník
             }
         }
 
@@ -557,6 +580,9 @@
             // Skryjeme zprávy o načítání/chybách
             loadingMessage.style.display = 'none';
             errorMessage.style.display = 'none';
+
+            heightControl.style.display = 'none'; // Skryjeme posuvník pro výšku
+            heightSlider.value = 0; // Resetujeme posuvník
         }
 
         /**
@@ -585,6 +611,26 @@
                 errorMessage.style.display = 'block';
             }
         });
+
+        // Nový posluchač událostí pro posuvník výšky
+        heightSlider.addEventListener('input', () => {
+            if (modelViewerElement) {
+                const heightInMeters = parseFloat(heightSlider.value) / 100; // Převod cm na metry
+                
+                // Získání aktuální pozice modelu
+                // model-viewer používá atribut 'translation' ve formátu "X Y Z"
+                // Pokud atribut není nastaven, výchozí je "0 0 0"
+                let currentTranslation = modelViewerElement.getAttribute('translation');
+                let parts = currentTranslation ? currentTranslation.split(' ').map(Number) : [0, 0, 0];
+                
+                // Aktualizace Y souřadnice (index 1)
+                parts[1] = heightInMeters;
+                
+                // Nastavení nové pozice modelu
+                modelViewerElement.setAttribute('translation', parts.join(' '));
+            }
+        });
+
 
         // --- Posluchače událostí pro <model-viewer> ---
         modelViewerElement.addEventListener('load', () => {
