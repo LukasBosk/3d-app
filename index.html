@@ -147,7 +147,6 @@
             transform: none;
         }
     </style>
-    <script src="./three.min.js"></script>
     <script src="./GLTFLoader.js"></script>
     <script src="./OBJLoader.js"></script>
     <script src="./MTLLoader.js"></script>
@@ -241,6 +240,19 @@
          * Tato inicializace je potřeba pouze pro OBJ/ZIP modely.
          */
         function initThreeJS() {
+            // Kontrola, zda je THREE objekt dostupný.
+            // Očekává se, že bude dostupný díky importu model-viewer.min.js,
+            // který Three.js interně obsahuje a často ho vystaví globálně.
+            if (typeof THREE === 'undefined') {
+                console.error("THREE.js knihovna není dostupná. Ujistěte se, že 'model-viewer.min.js' se načetl správně a zpřístupňuje THREE globálně.");
+                errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Knihovna THREE.js není dostupná.<br>" +
+                                         "Ujistěte se, že '<code>model-viewer.min.js</code>' je ve správné složce a je správně odkazován.";
+                errorMessage.style.display = 'block';
+                // Zakážeme všechna tlačítka, pokud Three.js není k dispozici
+                modelGrid.querySelectorAll('.model-button').forEach(button => button.disabled = true);
+                return; // Zastavíme další inicializaci, pokud chybí základní knihovna
+            }
+
             // Vytvoření scény
             scene = new THREE.Scene();
             scene.background = null; // Průhledné pozadí scény
@@ -315,6 +327,7 @@
         async function loadModelIntoThreeJS(modelPath) {
             // Zobrazíme zprávu o načítání a skryjeme chybu
             loadingMessage.style.display = 'block';
+            loadingMessage.textContent = 'Načítání modelu...';
             errorMessage.style.display = 'none';
 
             // Vyčistíme předchozí model, pokud existuje
@@ -338,6 +351,7 @@
             try {
                 // Tato funkce je volána POUZE pro OBJ a ZIP modely, GLB se řeší přes <model-viewer>
                 if (fileExtension === 'obj') {
+                    // OBJLoader je nyní k dispozici, protože je importován skriptem
                     const loader = new THREE.OBJLoader();
                     loader.load(modelPath, (obj) => {
                         currentModel = obj;
@@ -549,10 +563,13 @@
                 currentModel = null;
             }
             // Resetujeme kameru a ovládání Three.js do výchozího stavu
-            camera.position.set(0, 0, 5);
-            camera.lookAt(new THREE.Vector3(0, 0, 0));
-            controls.target.set(0, 0, 0);
-            controls.update();
+            if (camera && controls) {
+                camera.position.set(0, 0, 5);
+                camera.lookAt(new THREE.Vector3(0, 0, 0));
+                controls.target.set(0, 0, 0);
+                controls.update();
+            }
+
 
             // Vyčistíme <model-viewer>
             modelViewerElement.src = ''; // Vyprázdníme zdroj
@@ -647,18 +664,6 @@
             // Generujeme tlačítka hned na začátku, aby byla vždy viditelná
             generateModelButtons();
 
-            // Kontrola, zda je Three.js načten
-            if (typeof THREE === 'undefined') {
-                console.error("THREE.js knihovna nebyla načtena. Ujistěte se, že 'three.min.js' je ve správné složce a je správně odkazován.");
-                errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Knihovna THREE.js nebyla nalezena.<br>" +
-                                         "Ujistěte se, že jste stáhli soubor '<code>three.min.js</code>' (a všechny ostatní knihovny) " +
-                                         "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.";
-                errorMessage.style.display = 'block';
-                // Zakážeme všechna tlačítka, pokud Three.js není k dispozici
-                modelGrid.querySelectorAll('.model-button').forEach(button => button.disabled = true);
-                return; // Zastavíme další inicializaci, pokud chybí základní knihovna
-            }
-
             // Kontrola, zda je <model-viewer> zaregistrován jako vlastní element
             // Tato kontrola se provádí až po DOMContentLoaded, aby se zajistilo, že skripty měly čas se načíst.
             // Pokud se ani po tomto čase komponenta neregistruje, je problém v načítání JS souborů pro model-viewer.
@@ -688,7 +693,6 @@
 
 
             initThreeJS(); // Three.js inicializujeme vždy, protože ho můžeme potřebovat
-            // generateModelButtons(); - Už se volá na začátku
         });
     </script>
 </body>
