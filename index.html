@@ -12,7 +12,7 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f0f2f5;
+            background-color: #f0f2f5; /* Světle šedé pozadí pro HTML stránku */
             color: #333;
             display: flex;
             flex-direction: column;
@@ -101,17 +101,13 @@
         #canvasContainer, #modelViewerElement {
             width: 100%;
             height: 500px; /* Pevná výška pro 3D canvas / model-viewer */
-            background-color: #e0e0e0;
+            background-color: transparent; /* Průhledné pozadí pro 3D canvas */
             border-radius: 10px;
             overflow: hidden; /* Zajištění, že obsah nepřeteče */
             /* display: none; je nyní řízeno JavaScriptem */
             justify-content: center;
             align-items: center;
             position: relative;
-        }
-        /* Přidán rámeček pro ladění, aby bylo vidět, zda se element model-viewer zobrazuje */
-        #modelViewerElement {
-            border: 2px dashed #888; /* Jemný rámeček pro ladění */
         }
         #canvasContainer canvas {
             display: block;
@@ -193,8 +189,9 @@
                           ar
                           ar-modes="webxr scene-viewer quick-look"
                           camera-controls
-                          shadow-intensity="1"
-                          auto-rotate
+                          environment-intensity="0" <!-- Odstraní okolní osvětlení pro "volný prostor" -->
+                          shadow-intensity="0" <!-- Odstraní stíny -->
+                          auto-rotate <!-- Ponecháno pro automatické otáčení -->
                           style="width: 100%; height: 500px;">
             </model-viewer>
 
@@ -247,16 +244,17 @@
         function initThreeJS() {
             // Vytvoření scény
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf0f2f5); // Světle šedé pozadí
+            scene.background = null; // Průhledné pozadí scény
 
             // Vytvoření kamery
             camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
             camera.position.set(0, 0, 5); // Počáteční pozice kamery
 
             // Vytvoření rendereru
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // alpha: true pro průhlednost canvasu
             renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio); // Pro lepší kvalitu na HiDPI displejích
+            renderer.setClearColor(0x000000, 0); // Nastaví průhlednou barvu vymazání
             canvasContainer.appendChild(renderer.domElement); // Přidání canvasu do kontejneru
 
             // Přidání OrbitControls pro interakci s kamerou
@@ -266,8 +264,9 @@
             controls.screenSpacePanning = false; // Zakáže posouvání kamery v rovině obrazovky
             controls.minDistance = 1; // Minimální vzdálenost zoomu
             controls.maxDistance = 50; // Maximální vzdálenost zoomu
+            // OrbitControls by měly umožňovat plnou 360° rotaci ve všech směrech (pokud nejsou omezeny min/maxPolarAngle, které zde nejsou nastaveny)
 
-            // Přidání světla
+            // Přidání světla (pro osvětlení modelu, ne pro vrhání stínů)
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Mírné ambientní světlo
             scene.add(ambientLight);
 
@@ -437,10 +436,11 @@
             // Přidáme malou rezervu pro lepší pohled
             cameraZ *= 1.2;
 
-            camera.position.set(center.x, center.y, center.z + cameraZ);
-            camera.lookAt(center);
+            camera.position.copy(center); // Kamera se posune k centru modelu
+            camera.position.z += cameraZ; // A pak se oddálí
+            camera.lookAt(center); // A dívá se na centrum
 
-            // Aktualizujeme OrbitControls target
+            // Aktualizujeme OrbitControls target na střed modelu
             controls.target.copy(center);
             controls.update();
         }
@@ -563,7 +563,7 @@
             }
         });
 
-        // --- Nové posluchače událostí pro <model-viewer> ---
+        // --- Posluchače událostí pro <model-viewer> ---
         modelViewerElement.addEventListener('load', () => {
             loadingMessage.style.display = 'none'; // Skryjeme zprávu o načítání po úspěšném načtení modelu
             errorMessage.style.display = 'none'; // Vymažeme případné předchozí chybové zprávy
@@ -591,7 +591,7 @@
             }
             loadingMessage.style.display = 'block'; // Zajištění, že zpráva je viditelná během načítání
         });
-        // --- Konec nových posluchačů událostí ---
+        // --- Konec posluchačů událostí ---
 
 
         // Inicializace Three.js scény a generování tlačítek při načtení stránky
