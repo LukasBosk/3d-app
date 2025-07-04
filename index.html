@@ -561,8 +561,22 @@
 
         // Posluchač událostí pro tlačítko AR
         arButton.addEventListener('click', () => {
-            if (modelViewerElement && !arButton.disabled) {
-                modelViewerElement.activateAR();
+            console.log("AR tlačítko kliknuto.");
+            if (modelViewerElement) {
+                console.log("modelViewerElement existuje.");
+                console.log("canActivateAR:", modelViewerElement.canActivateAR);
+                console.log("arStatus:", modelViewerElement.arStatus);
+
+                if (modelViewerElement.canActivateAR) {
+                    console.log("canActivateAR je true, pokouším se aktivovat AR.");
+                    modelViewerElement.activateAR();
+                } else {
+                    console.warn("canActivateAR je false. AR nelze aktivovat.");
+                    errorMessage.textContent = "AR nelze aktivovat. Ujistěte se, že stránka běží na HTTPS a vaše zařízení podporuje WebXR.";
+                    errorMessage.style.display = 'block';
+                }
+            } else {
+                console.error("modelViewerElement není definován.");
             }
         });
 
