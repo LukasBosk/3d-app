@@ -147,7 +147,7 @@
             transform: none;
         }
     </style>
-    <script src="./GLTFLoader.js"></script>
+    <script src="./three.min.js"></script> <script src="./GLTFLoader.js"></script>
     <script src="./OBJLoader.js"></script>
     <script src="./MTLLoader.js"></script>
     <script src="./OrbitControls.js"></script>
@@ -241,12 +241,12 @@
          */
         function initThreeJS() {
             // Kontrola, zda je THREE objekt dostupný.
-            // Očekává se, že bude dostupný díky importu model-viewer.min.js,
-            // který Three.js interně obsahuje a často ho vystaví globálně.
+            // Očekává se, že bude dostupný díky importu three.min.js.
             if (typeof THREE === 'undefined') {
-                console.error("THREE.js knihovna není dostupná. Ujistěte se, že 'model-viewer.min.js' se načetl správně a zpřístupňuje THREE globálně.");
-                errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Knihovna THREE.js není dostupná.<br>" +
-                                         "Ujistěte se, že '<code>model-viewer.min.js</code>' je ve správné složce a je správně odkazován.";
+                console.error("THREE.js knihovna není dostupná. Ujistěte se, že 'three.min.js' je ve správné složce a je správně odkazován.");
+                errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Knihovna THREE.js nebyla nalezena.<br>" +
+                                         "Ujistěte se, že jste stáhli soubor '<code>three.min.js</code>' (a všechny ostatní knihovny) " +
+                                         "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.";
                 errorMessage.style.display = 'block';
                 // Zakážeme všechna tlačítka, pokud Three.js není k dispozici
                 modelGrid.querySelectorAll('.model-button').forEach(button => button.disabled = true);
