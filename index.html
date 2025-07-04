@@ -264,7 +264,10 @@
             controls.screenSpacePanning = false; // Zakáže posouvání kamery v rovině obrazovky
             controls.minDistance = 1; // Minimální vzdálenost zoomu
             controls.maxDistance = 50; // Maximální vzdálenost zoomu
-            // OrbitControls by měly umožňovat plnou 360° rotaci ve všech směrech (pokud nejsou omezeny min/maxPolarAngle, které zde nejsou nastaveny)
+            // Explicitně povolíme plnou vertikální rotaci (od shora dolů)
+            controls.minPolarAngle = 0; // Povolí pohled přímo shora
+            controls.maxPolarAngle = Math.PI; // Povolí pohled přímo zdola (Math.PI radiánů = 180 stupňů)
+
 
             // Přidání světla (pro osvětlení modelu, ne pro vrhání stínů)
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Mírné ambientní světlo
