@@ -463,7 +463,6 @@
             
             // Posuneme model tak, aby jeho střed byl v (0,0,0)
             object.position.sub(center);
-            console.log('Model: Geometrie vycentrována.');
         }
 
         /**
@@ -578,23 +577,12 @@
         backButton.addEventListener('click', showModelList);
 
         // Posluchač událostí pro tlačítko AR
-        arButton.addEventListener('click', () => {
-            console.log("AR tlačítko kliknuto.");
-            if (modelViewerElement) {
-                console.log("modelViewerElement existuje.");
-                console.log("canActivateAR:", modelViewerElement.canActivateAR);
-                console.log("arStatus:", modelViewerElement.arStatus);
-
-                if (modelViewerElement.canActivateAR) {
-                    console.log("canActivateAR je true, pokouším se aktivovat AR.");
-                    modelViewerElement.activateAR();
-                } else {
-                    console.warn("canActivateAR je false. AR nelze aktivovat.");
-                    errorMessage.textContent = "AR nelze aktivovat. Ujistěte se, že stránka běží na HTTPS a vaše zařízení podporuje WebXR.";
-                    errorMessage.style.display = 'block';
-                }
+        arButton.addEventListener('click', async () => {
+            if (modelViewerElement && modelViewerElement.canActivateAR) {
+                modelViewerElement.activateAR();
             } else {
-                console.error("modelViewerElement není definován.");
+                errorMessage.textContent = "AR nelze aktivovat. Ujistěte se, že stránka běží na HTTPS a vaše zařízení podporuje WebXR.";
+                errorMessage.style.display = 'block';
             }
         });
 
@@ -602,7 +590,6 @@
         modelViewerElement.addEventListener('load', () => {
             loadingMessage.style.display = 'none'; // Skryjeme zprávu o načítání po úspěšném načtení modelu
             errorMessage.style.display = 'none'; // Vymažeme případné předchozí chybové zprávy
-            console.log('Model-viewer: Model úspěšně načten.');
         });
 
         modelViewerElement.addEventListener('error', (event) => {
@@ -619,10 +606,8 @@
                 const total = event.detail.totalBytes;
                 const percentage = Math.round((loaded / total) * 100);
                 loadingMessage.textContent = `Načítání modelu... ${percentage}%`;
-                console.log(`Model-viewer: Načítání: ${percentage}%`);
             } else {
                 loadingMessage.textContent = `Načítání modelu...`; // Zobrazí se, pokud totalBytes není k dispozici
-                console.log('Model-viewer: Načítání dat (celková velikost není známa).');
             }
             loadingMessage.style.display = 'block'; // Zajištění, že zpráva je viditelná během načítání
         });
@@ -669,7 +654,7 @@
                     });
                     // Nezastavujeme celou inicializaci, protože OBJ/ZIP mohou stále fungovat přes Three.js
                 } else {
-                    console.log("Web komponenta <model-viewer> úspěšně zaregistrována.");
+                    // console.log("Web komponenta <model-viewer> úspěšně zaregistrována."); // Odstraněno z konzole
                 }
             }, 500); // Malé zpoždění pro jistotu, že se modul stihl zaregistrovat
 
