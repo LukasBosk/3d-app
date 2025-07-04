@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Muzeum regionu Boskovicka 3D prohlížeč</title>
+    <!-- Tailwind CSS pro moderní stylování a responzivitu (lokální cesta) -->
+    <!-- Ujistěte se, že soubor 'tailwind.min.js' je stažen a umístěn ve stejné složce jako tento HTML soubor. -->
     <script src="./tailwind.min.js"></script> 
     <style>
         body {
@@ -147,16 +149,24 @@
             transform: none;
         }
     </style>
-    <script src="./three.min.js"></script> <script src="./GLTFLoader.js"></script>
+    <!-- Three.js knihovny (lokální cesty) -->
+    <!-- Ujistěte se, že všechny tyto soubory jsou staženy a umístěny ve stejné složce jako tento HTML soubor. -->
+    <script src="./three.min.js"></script>
+    <script src="./GLTFLoader.js"></script>
     <script src="./OBJLoader.js"></script>
     <script src="./MTLLoader.js"></script>
     <script src="./OrbitControls.js"></script>
+    <!-- JSZip knihovna pro dekompresi ZIP souborů (lokální cesta) -->
+    <!-- Ujistěte se, že soubor 'jszip.min.js' je stažen a umístěn ve stejné složce jako tento HTML soubor. -->
     <script src="./jszip.min.js"></script>
+    <!-- Model Viewer knihovna pro AR (lokální cesty) -->
+    <!-- Ujistěte se, že soubory 'model-viewer.min.js' a 'model-viewer-umd.js' jsou staženy a umístěny ve stejné složce jako tento HTML soubor. -->
     <script type="module" src="./model-viewer.min.js"></script>
     <script nomodule src="./model-viewer-umd.js"></script>
 </head>
 <body>
     <div class="container">
+        <!-- Sekce pro seznam modelů -->
         <div id="modelListSection">
             <div class="header">
                 <img src="./logo.png" alt="Logo Muzea regionu Boskovicka">
@@ -164,17 +174,25 @@
             </div>
             <p>Vyberte 3D model, který chcete prozkoumat.</p>
             <div class="model-grid" id="modelGrid">
-                </div>
+                <!-- Tlačítka pro modely budou generována JavaScriptem -->
+            </div>
         </div>
 
+        <!-- Sekce pro prohlížeč modelu (zpočátku skrytá) -->
         <div id="modelViewerSection" style="display: none; flex-direction: column; align-items: center;">
+            <!-- Three.js canvas kontejner -->
             <div id="canvasContainer" style="display: none;">
-                </div>
+                <!-- Zde se bude renderovat 3D scéna (pro OBJ/ZIP) -->
+            </div>
+            <!-- Model Viewer pro GLB modely a AR -->
             <model-viewer id="modelViewerElement"
                           ar
                           ar-modes="webxr scene-viewer quick-look"
                           camera-controls
-                          environment-intensity="0" shadow-intensity="0" style="width: 100%; height: 500px;">
+                          environment-intensity="0" <!-- Odstraní okolní osvětlení pro "volný prostor" -->
+                          shadow-intensity="0" <!-- Odstraní stíny -->
+                          <!-- auto-rotate je nyní odstraněno pro lepší manuální kontrolu -->
+                          style="width: 100%; height: 500px;">
             </model-viewer>
 
             <div id="loadingMessage">Načítání modelu...</div>
@@ -185,6 +203,7 @@
                 <button class="ar-button" id="arButton" disabled>Zobrazit v AR (pouze GLB)</button>
             </div>
 
+            <!-- Nový posuvník pro výšku modelu v AR -->
             <div id="heightControl" class="mt-5 w-full max-w-sm" style="display: none;">
                 <label for="heightSlider" class="block text-sm font-medium text-gray-700 mb-2">Výška modelu v AR:</label>
                 <input type="range" id="heightSlider" min="-50" max="50" value="0" 
@@ -240,19 +259,6 @@
          * Tato inicializace je potřeba pouze pro OBJ/ZIP modely.
          */
         function initThreeJS() {
-            // Kontrola, zda je THREE objekt dostupný.
-            // Očekává se, že bude dostupný díky importu three.min.js.
-            if (typeof THREE === 'undefined') {
-                console.error("THREE.js knihovna není dostupná. Ujistěte se, že 'three.min.js' je ve správné složce a je správně odkazován.");
-                errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Knihovna THREE.js nebyla nalezena.<br>" +
-                                         "Ujistěte se, že jste stáhli soubor '<code>three.min.js</code>' (a všechny ostatní knihovny) " +
-                                         "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.";
-                errorMessage.style.display = 'block';
-                // Zakážeme všechna tlačítka, pokud Three.js není k dispozici
-                modelGrid.querySelectorAll('.model-button').forEach(button => button.disabled = true);
-                return; // Zastavíme další inicializaci, pokud chybí základní knihovna
-            }
-
             // Vytvoření scény
             scene = new THREE.Scene();
             scene.background = null; // Průhledné pozadí scény
@@ -327,7 +333,6 @@
         async function loadModelIntoThreeJS(modelPath) {
             // Zobrazíme zprávu o načítání a skryjeme chybu
             loadingMessage.style.display = 'block';
-            loadingMessage.textContent = 'Načítání modelu...';
             errorMessage.style.display = 'none';
 
             // Vyčistíme předchozí model, pokud existuje
@@ -351,7 +356,6 @@
             try {
                 // Tato funkce je volána POUZE pro OBJ a ZIP modely, GLB se řeší přes <model-viewer>
                 if (fileExtension === 'obj') {
-                    // OBJLoader je nyní k dispozici, protože je importován skriptem
                     const loader = new THREE.OBJLoader();
                     loader.load(modelPath, (obj) => {
                         currentModel = obj;
@@ -440,7 +444,7 @@
         }
 
         /**
-         * Přizpůsobí kameru tak, aby byl model viditelný a vycentrován.
+         * Přizpůsobí kameru tak, aby byl model viditelný a vycentrovaný.
          * @param {THREE.Object3D} object - 3D objekt, který má být vycentrován.
          * @param {THREE.PerspectiveCamera} camera - Kamera scény.
          * @param {THREE.OrbitControls} controls - OrbitControls instance.
@@ -563,13 +567,10 @@
                 currentModel = null;
             }
             // Resetujeme kameru a ovládání Three.js do výchozího stavu
-            if (camera && controls) {
-                camera.position.set(0, 0, 5);
-                camera.lookAt(new THREE.Vector3(0, 0, 0));
-                controls.target.set(0, 0, 0);
-                controls.update();
-            }
-
+            camera.position.set(0, 0, 5);
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+            controls.target.set(0, 0, 0);
+            controls.update();
 
             // Vyčistíme <model-viewer>
             modelViewerElement.src = ''; // Vyprázdníme zdroj
@@ -664,6 +665,18 @@
             // Generujeme tlačítka hned na začátku, aby byla vždy viditelná
             generateModelButtons();
 
+            // Kontrola, zda je Three.js načten
+            if (typeof THREE === 'undefined') {
+                console.error("THREE.js knihovna nebyla načtena. Ujistěte se, že 'three.min.js' je ve správné složce a je správně odkazován.");
+                errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Knihovna THREE.js nebyla nalezena.<br>" +
+                                         "Ujistěte se, že jste stáhli soubor '<code>three.min.js</code>' (a všechny ostatní knihovny) " +
+                                         "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.";
+                errorMessage.style.display = 'block';
+                // Zakážeme všechna tlačítka, pokud Three.js není k dispozici
+                modelGrid.querySelectorAll('.model-button').forEach(button => button.disabled = true);
+                return; // Zastavíme další inicializaci, pokud chybí základní knihovna
+            }
+
             // Kontrola, zda je <model-viewer> zaregistrován jako vlastní element
             // Tato kontrola se provádí až po DOMContentLoaded, aby se zajistilo, že skripty měly čas se načíst.
             // Pokud se ani po tomto čase komponenta neregistruje, je problém v načítání JS souborů pro model-viewer.
@@ -693,6 +706,7 @@
 
 
             initThreeJS(); // Three.js inicializujeme vždy, protože ho můžeme potřebovat
+            // generateModelButtons(); - Už se volá na začátku
         });
     </script>
 </body>
