@@ -270,10 +270,11 @@
 
 
             // Přidání světla (pro osvětlení modelu, ne pro vrhání stínů)
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Mírné ambientní světlo
+            // Snížená intenzita světla
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Mírné ambientní světlo, snížená intenzita
             scene.add(ambientLight);
 
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5); // Směrové světlo
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3); // Směrové světlo, snížená intenzita
             directionalLight.position.set(5, 10, 7);
             scene.add(directionalLight);
 
@@ -341,6 +342,8 @@
                     const loader = new THREE.OBJLoader();
                     loader.load(modelPath, (obj) => {
                         currentModel = obj;
+                        // Centrování modelu po načtení pro lepší rotaci
+                        centerModelGeometry(currentModel);
                         scene.add(currentModel);
                         fitCameraToModel(currentModel, camera, controls); // Přizpůsobíme kameru modelu
                         loadingMessage.style.display = 'none'; // Skryjeme zprávu o načítání
@@ -403,6 +406,8 @@
 
                     const obj = objLoader.parse(objContent);
                     currentModel = obj;
+                    // Centrování modelu po načtení pro lepší rotaci
+                    centerModelGeometry(currentModel);
                     scene.add(currentModel);
                     fitCameraToModel(currentModel, camera, controls);
                     loadingMessage.style.display = 'none';
@@ -439,13 +444,26 @@
             // Přidáme malou rezervu pro lepší pohled
             cameraZ *= 1.2;
 
-            camera.position.copy(center); // Kamera se posune k centru modelu
-            camera.position.z += cameraZ; // A pak se oddálí
-            camera.lookAt(center); // A dívá se na centrum
+            // Kamera se nyní dívá na (0,0,0), protože model je tam vycentrován
+            camera.position.set(0, 0, cameraZ);
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-            // Aktualizujeme OrbitControls target na střed modelu
-            controls.target.copy(center);
+            // Aktualizujeme OrbitControls target na (0,0,0)
+            controls.target.copy(new THREE.Vector3(0, 0, 0));
             controls.update();
+        }
+
+        /**
+         * Vycentruje geometrii 3D objektu tak, aby jeho střed byl v počátku (0,0,0).
+         * @param {THREE.Object3D} object - 3D objekt k vycentrování.
+         */
+        function centerModelGeometry(object) {
+            const box = new THREE.Box3().setFromObject(object);
+            const center = box.getCenter(new THREE.Vector3());
+            
+            // Posuneme model tak, aby jeho střed byl v (0,0,0)
+            object.position.sub(center);
+            console.log('Model: Geometrie vycentrována.');
         }
 
         /**
