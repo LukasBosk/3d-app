@@ -576,6 +576,27 @@
         document.addEventListener('DOMContentLoaded', () => {
             initThreeJS(); // Three.js inicializujeme vždy pro OBJ/ZIP modely
             generateModelButtons(); // Generujeme tlačítka modelů
+
+            // Důležitá kontrola pro model-viewer
+            setTimeout(() => {
+                if (!customElements.get('model-viewer')) {
+                    errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Web komponenta `model-viewer` nebyla nalezena.<br>" +
+                                             "Ujistěte se, že jste stáhli soubory '<code>model-viewer.min.js</code>' a '<code>model-viewer-umd.js</code>' " +
+                                             "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.<br>" +
+                                             "AR funkce nebude dostupná.";
+                    errorMessage.style.display = 'block';
+                    // Zakážeme pouze GLB tlačítka, pokud model-viewer nefunguje
+                    models.forEach((model, index) => {
+                        if (model.type === 'glb') {
+                            const button = modelGrid.children[index];
+                            if (button) { // Ujistíme se, že tlačítko existuje
+                                button.disabled = true;
+                                button.title = "AR prohlížeč není k dispozici";
+                            }
+                        }
+                    });
+                }
+            }, 500); // Malé zpoždění pro jistotu, že se modul stihl zaregistrovat
         });
     </script>
 </body>
