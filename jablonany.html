@@ -20,7 +20,7 @@
         }
         .container {
             width: 100%;
-            max-width: 900px; /* Širší kontejner pro Sketchfab iframe */
+            max-width: min(95vw, 1200px); /* Přizpůsobuje se obrazovce, max 1200px */
             background-color: #fff;
             padding: 25px;
             border-radius: 12px;
@@ -50,7 +50,7 @@
         }
         .sketchfab-viewer {
             width: 100%;
-            height: 500px; /* Pevná výška pro Sketchfab iframe */
+            height: min(80vh, 700px); /* Výška se přizpůsobí, min 50vh, max 700px */
             border: none;
             border-radius: 8px;
             overflow: hidden;
