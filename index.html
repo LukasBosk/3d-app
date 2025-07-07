@@ -26,7 +26,7 @@
         .container {
             width: 100%;
             max-width: 700px; /* Větší max-width pro 3D scénu */
-            background-color: rgba(255, 255, 255, 0.05); /* Průhledné bílé pozadí s 95% průhledností */
+            background-color: rgba(255, 255, 255, 0); /* Zcela průhledné bílé pozadí (výchozí) */
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -34,6 +34,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            transition: background-color 0.5s ease-in-out; /* Plynulá animace změny barvy pozadí */
         }
         .header {
             display: flex;
@@ -48,15 +49,16 @@
             border-radius: 8px; /* Zaoblené rohy loga */
         }
         h1 {
-            color: #1a73e8;
-            font-size: 2em; /* Mírně menší nadpis */
-            font-weight: bold;
+            color: white; /* Barva písma bílá */
+            font-size: 2.5em; /* Větší nadpis */
+            font-weight: bold; /* Tučné písmo */
             margin: 0; /* Odstranění výchozího marginu */
         }
         p {
-            color: #555;
+            color: white; /* Nastaveno na bílou barvu */
             margin-bottom: 20px;
             font-size: 1.1em;
+            font-weight: bold; /* Nastaveno na tučné písmo */
         }
         .model-grid {
             display: grid;
@@ -213,6 +215,7 @@
         const errorMessage = document.getElementById('errorMessage');
         const backButton = document.getElementById('backButton');
         const arButton = document.getElementById('arButton');
+        const container = document.querySelector('.container'); // Získání elementu kontejneru
 
         // Definice modelů s názvy, cestami a typy
         const models = [
@@ -303,6 +306,9 @@
             loadingMessage.textContent = 'Načítání modelu...';
             errorMessage.style.display = 'none';
 
+            // Reset container transparency when a new model starts loading
+            container.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+
             if (currentModelObject) {
                 scene.remove(currentModelObject);
                 currentModelObject.traverse(object => {
@@ -328,6 +334,7 @@
                         scene.add(currentModelObject);
                         fitCameraToModel(currentModelObject, camera, controls);
                         loadingMessage.style.display = 'none';
+                        container.style.backgroundColor = 'rgba(255, 255, 255, 0.75)'; // Změna neprůhlednosti na 75% po načtení
                     }, undefined, (error) => {
                         console.error('Chyba při načítání OBJ modelu:', error);
                         errorMessage.textContent = 'Chyba při načítání OBJ modelu. (Poznámka: OBJ modely bez .mtl souborů nemusí mít textury/barvy)';
@@ -391,6 +398,7 @@
                     scene.add(currentModelObject);
                     fitCameraToModel(currentModelObject, camera, controls);
                     loadingMessage.style.display = 'none';
+                    container.style.backgroundColor = 'rgba(255, 255, 255, 0.75)'; // Změna neprůhlednosti na 75% po načtení
 
                 } else {
                     errorMessage.textContent = 'Neočekávaný formát souboru pro Three.js. Měl by být .obj nebo .zip.';
@@ -460,6 +468,7 @@
 
             loadingMessage.style.display = 'block';
             errorMessage.style.display = 'none';
+            container.style.backgroundColor = 'rgba(255, 255, 255, 0)'; // Reset kontejneru při startu načítání
 
             // Vyčistíme model ze scény Three.js, pokud byl použit
             if (currentModelObject) {
@@ -497,6 +506,7 @@
         function showModelList() {
             modelViewerSection.style.display = 'none';
             modelListSection.style.display = 'block';
+            container.style.backgroundColor = 'rgba(255, 255, 255, 0)'; // Zcela průhledné pozadí po návratu
 
             // Vyčistíme model ze scény Three.js, pokud byl použit
             if (currentModelObject) {
@@ -570,6 +580,7 @@
             if (modelViewerElement.src.endsWith('.glb')) {
                 arButton.disabled = false;
                 arButton.title = "";
+                container.style.backgroundColor = 'rgba(255, 255, 255, 0.75)'; // Změna neprůhlednosti na 75% po načtení
             }
         });
 
@@ -580,6 +591,7 @@
             console.error('Model-viewer: Chyba při načítání modelu:', event);
             arButton.disabled = true; // V případě chyby AR tlačítko zakážeme
             arButton.title = "Chyba při načítání modelu, AR nedostupná";
+            container.style.backgroundColor = 'rgba(255, 255, 255, 0)'; // Reset průhlednosti v případě chyby
         });
 
         modelViewerElement.addEventListener('progress', (event) => {
