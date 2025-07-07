@@ -69,7 +69,7 @@
             font-size: 1.1em;
             font-weight: bold;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-: 0 2px 5px rgba(0,0,0,0.2);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -80,7 +80,7 @@
         }
         .model-button:active {
             transform: translateY(0);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         #loadingMessage {
@@ -131,7 +131,7 @@
             font-size: 1.1em;
             font-weight: bold;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-: 0 2px 5px rgba(0,0,0,0.2);
         }
         .back-button:hover, .ar-button:hover:not(:disabled) {
             background-color: #e0a300;
@@ -139,12 +139,12 @@
         }
         .back-button:active, .ar-button:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-: 0 1px 3px rgba(0,0,0,0.2);
         }
         .ar-button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
-            box-shadow: none;
+            box-: none;
             transform: none;
         }
     </style>
@@ -177,8 +177,8 @@
                           ar
                           ar-modes="webxr scene-viewer quick-look"
                           camera-controls
-                          environment-intensity="0" 
-                          shadow-intensity="0" 
+                          environment-intensity="1" 
+                          shadow-intensity="0.8" 
                           camera-orbit="0deg 75deg 2.5m"  
                           ar-placement="floor"        style="width: 100%; height: 500px;">
             </model-viewer>
