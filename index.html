@@ -10,7 +10,12 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f0f2f5; /* Světle šedé pozadí pro HTML stránku */
+            /* Původní background-color odstraníme nebo zakomentujeme */
+            /* background-color: #f0f2f5; */
+            background-image: url('./pozadi.jpg'); /* Cesta k obrázku pozadi.jpg */
+            background-size: cover; /* Pokryje celou plochu, ořízne, pokud je potřeba */
+            background-attachment: fixed; /* Zajišťuje, že se pozadí nebude posouvat s obsahem */
+            background-position: center center; /* Vycentruje obrázek */
             color: #333;
             display: flex;
             flex-direction: column;
@@ -69,7 +74,7 @@
             font-size: 1.1em;
             font-weight: bold;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            box-: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -80,7 +85,7 @@
         }
         .model-button:active {
             transform: translateY(0);
-            box-: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         #loadingMessage {
@@ -131,7 +136,7 @@
             font-size: 1.1em;
             font-weight: bold;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            box-: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .back-button:hover, .ar-button:hover:not(:disabled) {
             background-color: #e0a300;
@@ -139,12 +144,12 @@
         }
         .back-button:active, .ar-button:active:not(:disabled) {
             transform: translateY(0);
-            box-: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .ar-button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
-            box-: none;
+            box-shadow: none;
             transform: none;
         }
     </style>
@@ -225,10 +230,9 @@
             { name: "Depot Jabloňany", path: "./jablonany.glb", type: "glb" },
             { name: "Depot Boskovice úr. 1", path: "./boskovice.glb", type: "glb" },
             { name: "Depot Boskovice úr. 2", path: "./depotboskovice2.glb", type: "glb" }
-            // Příklad pro OBJ model (musíte mít OBJ a MTL soubory ve stejné složce, případně ZIP)
-            // { name: "Ukázkový OBJ", path: "./model.obj", type: "obj" }, 
-            // Příklad pro ZIP model (musí obsahovat OBJ a MTL/textury)
-            // { name: "Ukázkový ZIP", path: "./model.zip", type: "zip" }
+            // Pokud jste měli nějaké OBJ nebo ZIP modely, můžete je přidat zpět v tomto formátu:
+            // { name: "Ukázkový OBJ", path: "./ukazka.obj", type: "obj" },
+            // { name: "Ukázkový ZIP", path: "./ukazka.zip", type: "zip" }
         ];
 
         /**
@@ -452,29 +456,41 @@
          */
         function handleModelClick(model) {
             modelListSection.style.display = 'none';
-            modelViewerSection.style.display = 'flex'; // Zobrazit sekci prohlížeče
+            modelViewerSection.style.display = 'flex';
 
             loadingMessage.style.display = 'block';
-            loadingMessage.textContent = 'Načítání modelu...';
             errorMessage.style.display = 'none';
 
-            // Skryjeme oba prohlížeče na začátku
-            canvasContainer.style.display = 'none';
-            modelViewerElement.style.display = 'none';
-            arButton.disabled = true; // Zakážeme AR tlačítko, dokud se nenačte GLB model
+            // Vyčistíme model ze scény Three.js, pokud byl použit
+            if (currentModelObject) {
+                scene.remove(currentModelObject);
+                currentModelObject = null;
+            }
 
+            // Podle typu modelu se rozhodneme, který prohlížeč použít
             if (model.type === 'glb') {
+                canvasContainer.style.display = 'none'; // Skrýt Three.js canvas
+                modelViewerElement.style.display = 'block'; // Zobrazit model-viewer
+
                 modelViewerElement.src = model.path;
                 modelViewerElement.alt = model.name;
-                modelViewerElement.style.display = 'block'; // Zobrazíme model-viewer
-                // AR tlačítko se povolí v posluchači 'load' události model-viewer
+                loadingMessage.textContent = 'Načítání 3D modelu (GLB)...';
+                arButton.disabled = true; // Zakážeme AR tlačítko, dokud se model nenačte
+                arButton.title = ""; // Vymaže tooltip
             } else if (model.type === 'obj' || model.type === 'zip') {
-                canvasContainer.style.display = 'flex'; // Zobrazíme Three.js canvas
+                modelViewerElement.style.display = 'none'; // Skrýt model-viewer
+                canvasContainer.style.display = 'flex'; // Zobrazit Three.js canvas
+
+                loadingMessage.textContent = `Načítání 3D modelu (${model.type.toUpperCase()})...`;
                 loadModelIntoThreeJS(model.path);
+                arButton.disabled = true; // AR není pro OBJ/ZIP modely k dispozici
+                arButton.title = "AR není pro OBJ/ZIP modely dostupná";
             } else {
-                errorMessage.textContent = `Nepodporovaný typ souboru: ${model.type}.`;
+                errorMessage.textContent = 'Nepodporovaný typ souboru modelu.';
                 errorMessage.style.display = 'block';
                 loadingMessage.style.display = 'none';
+                arButton.disabled = true;
+                arButton.title = "Nepodporovaný typ modelu";
             }
         }
 
@@ -505,10 +521,11 @@
                 controls.update();
             }
 
-            // Vyčistíme <model-viewer>
+            // Vyčistíme <model-viewer> a ujistíme se, že je skrytý
             modelViewerElement.src = '';
             modelViewerElement.style.display = 'none';
-            arButton.disabled = true;
+            arButton.disabled = true; // Zakažte AR tlačítko, když se vrátíte na seznam
+            arButton.title = ""; // Vymaže tooltip
 
             // Skryjeme zprávy o načítání/chybách
             loadingMessage.style.display = 'none';
@@ -536,6 +553,7 @@
 
         // Posluchač událostí pro tlačítko AR
         arButton.addEventListener('click', async () => {
+            // AR je možné pouze, pokud je načten GLB model a zařízení ho podporuje
             if (modelViewerElement && modelViewerElement.canActivateAR) {
                 modelViewerElement.activateAR();
             } else {
@@ -548,14 +566,20 @@
         modelViewerElement.addEventListener('load', () => {
             loadingMessage.style.display = 'none';
             errorMessage.style.display = 'none';
-            arButton.disabled = false; // Povolíme AR tlačítko, pokud se GLB model načetl
+            // Pokud je načten GLB model, povolíme AR tlačítko
+            if (modelViewerElement.src.endsWith('.glb')) {
+                arButton.disabled = false;
+                arButton.title = "";
+            }
         });
 
         modelViewerElement.addEventListener('error', (event) => {
             loadingMessage.style.display = 'none';
-            errorMessage.textContent = 'Chyba při načítání modelu v AR prohlížeči. Zkuste jiný model nebo zkontrolujte soubor.';
+            errorMessage.textContent = 'Chyba při načítání modelu. Zkuste jiný model nebo zkontrolujte soubor.';
             errorMessage.style.display = 'block';
             console.error('Model-viewer: Chyba při načítání modelu:', event);
+            arButton.disabled = true; // V případě chyby AR tlačítko zakážeme
+            arButton.title = "Chyba při načítání modelu, AR nedostupná";
         });
 
         modelViewerElement.addEventListener('progress', (event) => {
@@ -574,7 +598,7 @@
 
         // Inicializace při načtení stránky
         document.addEventListener('DOMContentLoaded', () => {
-            initThreeJS(); // Three.js inicializujeme vždy pro OBJ/ZIP modely
+            initThreeJS(); // Three.js inicializujeme vždy, protože ho můžeme potřebovat
             generateModelButtons(); // Generujeme tlačítka modelů
 
             // Důležitá kontrola pro model-viewer
