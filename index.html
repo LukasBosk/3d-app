@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Muzeum regionu Boskovicka 3D prohlížeč</title>
-    <!-- Tailwind CSS pro moderní stylování a responzivitu (lokální cesta) -->
-    <!-- Ujistěte se, že soubor 'tailwind.min.js' je stažen a umístěn ve stejné složce jako tento HTML soubor. -->
     <script src="./tailwind.min.js"></script> 
     <style>
         body {
@@ -57,7 +55,7 @@
         }
         .model-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responzivní mřížka tlačítek */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Změněno z 150px na 180px */
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -148,50 +146,66 @@
             box-shadow: none;
             transform: none;
         }
+
+        /* Styly pro přepínací tlačítka režimů */
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mode-toggle button {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            color: #555;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-weight: bold;
+        }
+        .mode-toggle button.active {
+            background-color: #4285f4;
+            color: white;
+            border-color: #4285f4;
+        }
     </style>
-    <!-- Three.js knihovny (lokální cesty) -->
-    <!-- Ujistěte se, že všechny tyto soubory jsou staženy a umístěny ve stejné složce jako tento HTML soubor. -->
     <script src="./three.min.js"></script>
     <script src="./GLTFLoader.js"></script>
     <script src="./OBJLoader.js"></script>
     <script src="./MTLLoader.js"></script>
     <script src="./OrbitControls.js"></script>
-    <!-- JSZip knihovna pro dekompresi ZIP souborů (lokální cesta) -->
-    <!-- Ujistěte se, že soubor 'jszip.min.js' je stažen a umístěn ve stejné složce jako tento HTML soubor. -->
     <script src="./jszip.min.js"></script>
-    <!-- Model Viewer knihovna pro AR (lokální cesty) -->
-    <!-- Ujistěte se, že soubory 'model-viewer.min.js' a 'model-viewer-umd.js' jsou staženy a umístěny ve stejné složce jako tento HTML soubor. -->
     <script type="module" src="./model-viewer.min.js"></script>
     <script nomodule src="./model-viewer-umd.js"></script>
 </head>
 <body>
     <div class="container">
-        <!-- Sekce pro seznam modelů -->
         <div id="modelListSection">
             <div class="header">
                 <img src="./logo.png" alt="Logo Muzea regionu Boskovicka">
                 <h1>Muzeum regionu Boskovicka 3D prohlížeč</h1>
             </div>
             <p>Vyberte 3D model, který chcete prozkoumat.</p>
-            <div class="model-grid" id="modelGrid">
-                <!-- Tlačítka pro modely budou generována JavaScriptem -->
+
+            <div class="mode-toggle">
+                <button id="mode3dButton" class="active">Prohlížeč (3D)</button>
+                <button id="modeArButton">AR (Rozšířená realita)</button>
             </div>
+
+            <div class="model-grid" id="modelGrid">
+                </div>
         </div>
 
-        <!-- Sekce pro prohlížeč modelu (zpočátku skrytá) -->
         <div id="modelViewerSection" style="display: none; flex-direction: column; align-items: center;">
-            <!-- Three.js canvas kontejner -->
             <div id="canvasContainer" style="display: none;">
-                <!-- Zde se bude renderovat 3D scéna (pro OBJ/ZIP) -->
-            </div>
-            <!-- Model Viewer pro GLB modely a AR -->
+                </div>
             <model-viewer id="modelViewerElement"
                           ar
                           ar-modes="webxr scene-viewer quick-look"
                           camera-controls
-                          environment-intensity="0" <!-- Odstraní okolní osvětlení pro "volný prostor" -->
-                          shadow-intensity="0" <!-- Odstraní stíny -->
-                          <!-- auto-rotate je nyní odstraněno pro lepší manuální kontrolu -->
+                          environment-intensity="0" 
+                          shadow-intensity="0" 
                           style="width: 100%; height: 500px;">
             </model-viewer>
 
@@ -203,7 +217,6 @@
                 <button class="ar-button" id="arButton" disabled>Zobrazit v AR (pouze GLB)</button>
             </div>
 
-            <!-- Nový posuvník pro výšku modelu v AR -->
             <div id="heightControl" class="mt-5 w-full max-w-sm" style="display: none;">
                 <label for="heightSlider" class="block text-sm font-medium text-gray-700 mb-2">Výška modelu v AR:</label>
                 <input type="range" id="heightSlider" min="-50" max="50" value="0" 
@@ -220,122 +233,115 @@
     <script>
         // Three.js scéna, kamera a renderer
         let scene, camera, renderer, controls;
-        let currentModel = null; // Pro uložení aktuálně načteného modelu (pro Three.js)
+        let currentModel = null; 
+        let currentViewMode = '3d'; // '3d' pro prohlížeč (Sketchfab), 'ar' pro rozšířenou realitu (GLB)
 
         // Získání DOM elementů
         const modelListSection = document.getElementById('modelListSection');
         const modelViewerSection = document.getElementById('modelViewerSection');
         const modelGrid = document.getElementById('modelGrid');
-        const canvasContainer = document.getElementById('canvasContainer'); // Pro Three.js
-        const modelViewerElement = document.getElementById('modelViewerElement'); // Pro <model-viewer>
+        const canvasContainer = document.getElementById('canvasContainer'); 
+        const modelViewerElement = document.getElementById('modelViewerElement'); 
         const loadingMessage = document.getElementById('loadingMessage');
         const errorMessage = document.getElementById('errorMessage');
         const backButton = document.getElementById('backButton');
         const arButton = document.getElementById('arButton');
-        const heightControl = document.getElementById('heightControl'); // Nový element pro posuvník
-        const heightSlider = document.getElementById('heightSlider');     // Nový element pro posuvník
+        const heightControl = document.getElementById('heightControl'); 
+        const heightSlider = document.getElementById('heightSlider');     
+        const mode3dButton = document.getElementById('mode3dButton');
+        const modeArButton = document.getElementById('modeArButton');
 
         // Definice modelů s názvy, cestami a typy
         const models = [
-            { name: "Dláto", path: "./Dlato.glb", type: "glb" },
-            { name: "Dláto s tulejí", path: "./Dlatostuleji.glb", type: "glb" },
-            { name: "Kladívko", path: "./Kladivko.glb", type: "glb" },
-            { name: "Náramek", path: "./Naramek.glb", type: "glb" },
-            { name: "Sekera s tulejí", path: "./Sekera.glb", type: "glb" },
-            { name: "Srp", path: "./Srp.glb", type: "glb" },
-            { name: "Tordovaný kruh", path: "./Tordovanykruh.glb", type: "glb" },
-            { name: "Udidlo", path: "./Udidlo.glb", type: "glb" },
-            { name: "Lunicovitý závěsek", path: "./Zavesek1.glb", type: "glb" },
-            { name: "Kolečkovitý závěsek", path: "./Zavesek2.glb", type: "glb" },
-            { name: "Závěsek", path: "./Zavesek3.glb", type: "glb" },
-            // Aktualizované a nové modely
-            { name: "Depot Jabloňany", path: "./jablonany.glb", type: "glb" },
-            { name: "Depot Boskovice úr. 1", path: "./boskovice.glb", type: "glb" }, // Změněn název tlačítka
-            { name: "Depot Boskovice úr. 2", path: "./depotboskovice2.glb", type: "glb" } // Nová položka
+            // GLB modely pro AR
+            // PŘIDEJTE VLASTNÍ CESTY K SKETCHFAB HTML STRÁNKÁM ZDE
+            { name: "Dláto", path: "./Dlato.glb", type: "glb", sketchfabPage: "./Dlato.html" },
+            { name: "Dláto s tulejí", path: "./Dlatostuleji.glb", type: "glb", sketchfabPage: "./Dlatostuleji.html" },
+            { name: "Kladívko", path: "./Kladivko.glb", type: "glb", sketchfabPage: "./Kladivko.html" },
+            { name: "Náramek", path: "./Naramek.glb", type: "glb", sketchfabPage: "./Naramek.html" },
+            { name: "Sekera s tulejí", path: "./Sekera.glb", type: "glb", sketchfabPage: "./Sekera.html" },
+            { name: "Srp", path: "./Srp.glb", type: "glb", sketchfabPage: "./Srp.html" },
+            { name: "Tordovaný kruh", path: "./Tordovanykruh.glb", type: "glb", sketchfabPage: "./Tordovanykruh.html" },
+            { name: "Udidlo", path: "./Udidlo.glb", type: "glb", sketchfabPage: "./Udidlo.html" },
+            { name: "Lunicovitý závěsek", path: "./Zavesek1.glb", type: "glb", sketchfabPage: "./Zavesek1.html" },
+            { name: "Kolečkovitý závěsek", path: "./Zavesek2.glb", type: "glb", sketchfabPage: "./Zavesek2.html" },
+            { name: "Závěsek", path: "./Zavesek3.glb", type: "glb", sketchfabPage: "./Zavesek3.html" },
+            { name: "Depot Jabloňany", path: "./jablonany.glb", type: "glb", sketchfabPage: "./jablonany.html" },
+            { name: "Depot Boskovice úr. 1", path: "./boskovice.glb", type: "glb", sketchfabPage: "./boskovice.html" },
+            { name: "Depot Boskovice úr. 2", path: "./depotboskovice2.glb", type: "glb", sketchfabPage: "./depotboskovice2.html" }
+            // Pokud byste měl i jiné typy modelů, které chcete zobrazovat v Three.js v 3D režimu, můžete je přidat zde
+            // { name: "Můj OBJ model", path: "./my_model.obj", type: "obj", sketchfabPage: null }, // Příklad pro OBJ, který nemá Sketchfab stránku
         ];
 
         /**
          * Inicializuje Three.js scénu, kameru a renderer.
-         * Tato inicializace je potřeba pouze pro OBJ/ZIP modely.
+         * Tato inicializace je potřeba pro OBJ/ZIP modely.
          */
         function initThreeJS() {
-            // Vytvoření scény
+            if (typeof THREE === 'undefined') {
+                console.error("THREE.js knihovna není dostupná. Three.js modely (OBJ/ZIP) nebudou fungovat.");
+                errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Knihovna THREE.js nebyla nalezena.<br>" +
+                                         "Ujistěte se, že jste stáhli soubor '<code>three.min.js</code>' a umístili jej " +
+                                         "do <strong>stejné složky</strong> jako tento HTML soubor.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
             scene = new THREE.Scene();
-            scene.background = null; // Průhledné pozadí scény
+            scene.background = null; 
 
-            // Vytvoření kamery
             camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
-            camera.position.set(0, 0, 5); // Počáteční pozice kamery
+            camera.position.set(0, 0, 5); 
 
-            // Vytvoření rendereru
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // alpha: true pro průhlednost canvasu
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); 
             renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio); // Pro lepší kvalitu na HiDPI displejích
-            renderer.setClearColor(0x000000, 0); // Nastaví průhlednou barvu vymazání
-            canvasContainer.appendChild(renderer.domElement); // Přidání canvasu do kontejneru
+            renderer.setPixelRatio(window.devicePixelRatio); 
+            renderer.setClearColor(0x000000, 0); 
+            canvasContainer.appendChild(renderer.domElement); 
 
-            // Přidání OrbitControls pro interakci s kamerou
             controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true; // Pro plynulejší pohyb
+            controls.enableDamping = true; 
             controls.dampingFactor = 0.05;
-            controls.screenSpacePanning = false; // Zakáže posouvání kamery v rovině obrazovky
-            controls.minDistance = 1; // Minimální vzdálenost zoomu
-            controls.maxDistance = 50; // Maximální vzdálenost zoomu
-            // Explicitně povolíme plnou vertikální rotaci (od shora dolů)
-            controls.minPolarAngle = 0; // Povolí pohled přímo shora
-            controls.maxPolarAngle = Math.PI; // Povolí pohled přímo zdola (Math.PI radiánů = 180 stupňů)
+            controls.screenSpacePanning = false; 
+            controls.minDistance = 1; 
+            controls.maxDistance = 50; 
+            controls.minPolarAngle = 0; 
+            controls.maxPolarAngle = Math.PI; 
 
-
-            // Přidání světla (pro osvětlení modelu, ne pro vrhání stínů)
-            // Snížená intenzita světla
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Mírné ambientní světlo, snížená intenzita
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); 
             scene.add(ambientLight);
 
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3); // Směrové světlo, snížená intenzita
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3); 
             directionalLight.position.set(5, 10, 7);
             scene.add(directionalLight);
 
-            // Zpracování změny velikosti okna
             window.addEventListener('resize', onWindowResize);
-            // Spuštění animační smyčky
             animate();
         }
 
-        /**
-         * Zpracuje změnu velikosti okna pro responzivní canvas.
-         */
         function onWindowResize() {
-            // Pouze pokud je Three.js canvas viditelný
             if (canvasContainer.style.display === 'flex') {
                 camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
-                controls.update(); // Aktualizace OrbitControls po změně velikosti
+                controls.update();
             }
         }
 
-        /**
-         * Animační smyčka pro Three.js.
-         */
         function animate() {
             requestAnimationFrame(animate);
-            // Pouze pokud je Three.js canvas viditelný
             if (canvasContainer.style.display === 'flex') {
-                controls.update(); // Aktualizace OrbitControls
+                controls.update();
                 renderer.render(scene, camera);
             }
         }
 
-        /**
-         * Načte 3D model ze souboru do Three.js canvasu (pouze pro OBJ/ZIP).
-         * @param {string} modelPath - Cesta k souboru s 3D modelem.
-         */
+        // Three.js model loading functions (zůstávají v kódu, ale nebudou volány z hlavního menu)
         async function loadModelIntoThreeJS(modelPath) {
-            // Zobrazíme zprávu o načítání a skryjeme chybu
             loadingMessage.style.display = 'block';
+            loadingMessage.textContent = 'Načítání modelu...';
             errorMessage.style.display = 'none';
 
-            // Vyčistíme předchozí model, pokud existuje
             if (currentModel) {
                 scene.remove(currentModel);
                 currentModel.traverse(object => {
@@ -352,18 +358,15 @@
             }
 
             const fileExtension = modelPath.split('.').pop().toLowerCase();
-
             try {
-                // Tato funkce je volána POUZE pro OBJ a ZIP modely, GLB se řeší přes <model-viewer>
                 if (fileExtension === 'obj') {
                     const loader = new THREE.OBJLoader();
                     loader.load(modelPath, (obj) => {
                         currentModel = obj;
-                        // Centrování modelu po načtení pro lepší rotaci
                         centerModelGeometry(currentModel);
                         scene.add(currentModel);
-                        fitCameraToModel(currentModel, camera, controls); // Přizpůsobíme kameru modelu
-                        loadingMessage.style.display = 'none'; // Skryjeme zprávu o načítání
+                        fitCameraToModel(currentModel, camera, controls);
+                        loadingMessage.style.display = 'none';
                     }, undefined, (error) => {
                         console.error('Chyba při načítání OBJ modelu:', error);
                         errorMessage.textContent = 'Chyba při načítání OBJ modelu. (Poznámka: OBJ modely bez .mtl souborů nemusí mít textury/barvy)';
@@ -423,14 +426,12 @@
 
                     const obj = objLoader.parse(objContent);
                     currentModel = obj;
-                    // Centrování modelu po načtení pro lepší rotaci
                     centerModelGeometry(currentModel);
                     scene.add(currentModel);
                     fitCameraToModel(currentModel, camera, controls);
                     loadingMessage.style.display = 'none';
 
                 } else {
-                    // Tato větev by se neměla spustit, protože pro GLB používáme <model-viewer>
                     errorMessage.textContent = 'Neočekávaný formát souboru pro Three.js. Měl by být .obj nebo .zip.';
                     errorMessage.style.display = 'block';
                     loadingMessage.style.display = 'none';
@@ -443,12 +444,6 @@
             }
         }
 
-        /**
-         * Přizpůsobí kameru tak, aby byl model viditelný a vycentrovaný.
-         * @param {THREE.Object3D} object - 3D objekt, který má být vycentrován.
-         * @param {THREE.PerspectiveCamera} camera - Kamera scény.
-         * @param {THREE.OrbitControls} controls - OrbitControls instance.
-         */
         function fitCameraToModel(object, camera, controls) {
             const box = new THREE.Box3().setFromObject(object);
             const center = box.getCenter(new THREE.Vector3());
@@ -458,34 +453,21 @@
             const fov = camera.fov * (Math.PI / 180);
             let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
 
-            // Přidáme malou rezervu pro lepší pohled
             cameraZ *= 1.2;
 
-            // Kamera se nyní dívá na (0,0,0), protože model je tam vycentrován
             camera.position.set(0, 0, cameraZ);
             camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-            // Aktualizujeme OrbitControls target na (0,0,0)
             controls.target.copy(new THREE.Vector3(0, 0, 0));
             controls.update();
         }
 
-        /**
-         * Vycentruje geometrii 3D objektu tak, aby jeho střed byl v počátku (0,0,0).
-         * @param {THREE.Object3D} object - 3D objekt k vycentrování.
-         */
         function centerModelGeometry(object) {
             const box = new THREE.Box3().setFromObject(object);
             const center = box.getCenter(new THREE.Vector3());
-            
-            // Posuneme model tak, aby jeho střed byl v (0,0,0)
             object.position.sub(center);
         }
 
-        /**
-         * Vyčistí materiály a jejich textury, aby se zabránilo úniku paměti.
-         * @param {THREE.Material} material - Materiál k vyčištění.
-         */
         function cleanMaterial(material) {
             if (Array.isArray(material)) {
                 for (const mat of material) {
@@ -507,46 +489,45 @@
         }
 
         /**
-         * Zobrazí sekci prohlížeče modelu a skryje seznam modelů.
-         * Dynamicky přepíná mezi Three.js canvasem a <model-viewer> komponentou.
+         * Zpracuje kliknutí na tlačítko modelu na základě aktuálního režimu.
          * @param {object} model - Objekt modelu s názvem, cestou a typem.
+         * @param {string} mode - '3d' pro Sketchfab, 'ar' pro GLB/AR.
          */
-        function showModelViewer(model) {
-            modelListSection.style.display = 'none';
-            modelViewerSection.style.display = 'flex'; // Zobrazíme sekci prohlížeče
+        function handleModelClick(model, mode) {
+            if (mode === '3d') {
+                // V režimu "3D" přesměrujeme na stránku Sketchfab.
+                if (model.sketchfabPage) {
+                    window.location.href = model.sketchfabPage;
+                } else {
+                    errorMessage.textContent = `Model ${model.name} nemá definovanou stránku pro 3D prohlížeč (Sketchfab).`;
+                    errorMessage.style.display = 'block';
+                }
+            } else if (mode === 'ar') {
+                // V režimu "AR" zobrazíme GLB model v model-viewer.
+                if (model.type === 'glb') {
+                    modelListSection.style.display = 'none';
+                    modelViewerSection.style.display = 'flex';
 
-            loadingMessage.style.display = 'block'; // Zobrazíme zprávu o načítání
-            loadingMessage.textContent = 'Načítání modelu...'; // Resetujeme text zprávy
-            errorMessage.style.display = 'none'; // Skryjeme chybovou zprávu
+                    loadingMessage.style.display = 'block';
+                    loadingMessage.textContent = 'Načítání modelu...';
+                    errorMessage.style.display = 'none';
 
-            // Skryjeme oba prohlížeče na začátku
-            canvasContainer.style.display = 'none';
-            modelViewerElement.style.display = 'none'; // Skryjeme model-viewer element
-            arButton.disabled = true; // Zakážeme AR tlačítko, dokud není model načten
+                    canvasContainer.style.display = 'none'; // Skryjeme Three.js canvas
+                    modelViewerElement.style.display = 'block'; // Zobrazíme model-viewer
+                    arButton.disabled = false; // Povolíme AR tlačítko
+                    heightControl.style.display = 'block'; // Zobrazíme posuvník pro výšku
+                    heightSlider.value = 0; // Resetujeme posuvník
+                    modelViewerElement.setAttribute('translation', '0 0 0'); // Resetujeme pozici modelu v AR
 
-            if (model.type === 'glb') {
-                // Pro GLB modely použijeme <model-viewer>
-                modelViewerElement.src = model.path;
-                modelViewerElement.alt = model.name;
-                modelViewerElement.style.display = 'block'; // Zobrazíme model-viewer
-                arButton.disabled = false; // Povolíme AR tlačítko
-                
-                heightControl.style.display = 'block'; // Zobrazíme posuvník pro výšku
-                heightSlider.value = 0; // Resetujeme posuvník
-                modelViewerElement.setAttribute('translation', '0 0 0'); // Resetujeme pozici modelu v AR
-            } else {
-                // Pro OBJ a ZIP modely použijeme Three.js
-                canvasContainer.style.display = 'flex'; // Zobrazíme Three.js canvas
-                loadModelIntoThreeJS(model.path); // Načteme model do Three.js
-
-                heightControl.style.display = 'none'; // Skryjeme posuvník pro výšku
-                heightSlider.value = 0; // Resetujeme posuvník
+                    modelViewerElement.src = model.path;
+                    modelViewerElement.alt = model.name;
+                } else {
+                    errorMessage.textContent = `Model ${model.name} není GLB formátu a nelze jej zobrazit v AR režimu.`;
+                    errorMessage.style.display = 'block';
+                }
             }
         }
 
-        /**
-         * Zobrazí sekci seznamu modelů a skryje prohlížeč modelu.
-         */
         function showModelList() {
             modelViewerSection.style.display = 'none';
             modelListSection.style.display = 'block';
@@ -567,26 +548,30 @@
                 currentModel = null;
             }
             // Resetujeme kameru a ovládání Three.js do výchozího stavu
-            camera.position.set(0, 0, 5);
-            camera.lookAt(new THREE.Vector3(0, 0, 0));
-            controls.target.set(0, 0, 0);
-            controls.update();
+            if (camera && controls) {
+                camera.position.set(0, 0, 5);
+                camera.lookAt(new THREE.Vector3(0, 0, 0));
+                controls.target.set(0, 0, 0);
+                controls.update();
+            }
 
             // Vyčistíme <model-viewer>
-            modelViewerElement.src = ''; // Vyprázdníme zdroj
-            modelViewerElement.style.display = 'none'; // Skryjeme ho
-            arButton.disabled = true; // Zakážeme AR tlačítko
+            modelViewerElement.src = '';
+            modelViewerElement.style.display = 'none';
+            arButton.disabled = true;
 
             // Skryjeme zprávy o načítání/chybách
             loadingMessage.style.display = 'none';
             errorMessage.style.display = 'none';
 
-            heightControl.style.display = 'none'; // Skryjeme posuvník pro výšku
-            heightSlider.value = 0; // Resetujeme posuvník
+            heightControl.style.display = 'none';
+            heightSlider.value = 0;
+            
+            generateModelButtons(); // Regenerate buttons to reflect current mode
         }
 
         /**
-         * Generuje tlačítka modelů na základě pole 'models'.
+         * Generuje tlačítka modelů na základě pole 'models' a aktuálního režimu.
          */
         function generateModelButtons() {
             modelGrid.innerHTML = ''; // Vyčistíme mřížku před generováním
@@ -594,8 +579,41 @@
                 const button = document.createElement('button');
                 button.className = 'model-button';
                 button.textContent = model.name;
-                button.addEventListener('click', () => showModelViewer(model)); // Předáváme celý objekt modelu
+                button.addEventListener('click', () => {
+                    handleModelClick(model, currentViewMode); // Voláme novou funkci handleModelClick
+                });
                 modelGrid.appendChild(button);
+            });
+            updateButtonTooltips(); // Aktualizujeme tooltips a stav tlačítek po vygenerování
+        }
+
+        // Posluchače událostí pro přepínací tlačítka režimů
+        mode3dButton.addEventListener('click', () => {
+            currentViewMode = '3d';
+            mode3dButton.classList.add('active');
+            modeArButton.classList.remove('active');
+            generateModelButtons(); // Regenerujeme tlačítka pro 3D režim
+        });
+
+        modeArButton.addEventListener('click', () => {
+            currentViewMode = 'ar';
+            modeArButton.classList.add('active');
+            mode3dButton.classList.remove('active');
+            generateModelButtons(); // Regenerujeme tlačítka pro AR režim
+        });
+
+        // Přidá tooltips a zakáže/povolí tlačítka na základě režimu
+        function updateButtonTooltips() {
+            const buttons = modelGrid.querySelectorAll('.model-button');
+            buttons.forEach((button, index) => {
+                const model = models[index];
+                if (currentViewMode === '3d') {
+                    button.title = model.sketchfabPage ? `Otevřít 3D prohlížeč pro ${model.name}` : `3D prohlížeč (Sketchfab) není k dispozici pro ${model.name}`;
+                    button.disabled = !model.sketchfabPage; // Zakázat, pokud není definována Sketchfab stránka
+                } else if (currentViewMode === 'ar') {
+                    button.title = model.type === 'glb' ? `Zobrazit ${model.name} v rozšířené realitě` : `Model ${model.name} není kompatibilní s AR`;
+                    button.disabled = model.type !== 'glb'; // Zakázat, pokud není GLB
+                }
             });
         }
 
@@ -615,18 +633,10 @@
         // Nový posluchač událostí pro posuvník výšky
         heightSlider.addEventListener('input', () => {
             if (modelViewerElement) {
-                const heightInMeters = parseFloat(heightSlider.value) / 100; // Převod cm na metry
-                
-                // Získání aktuální pozice modelu
-                // model-viewer používá atribut 'translation' ve formátu "X Y Z"
-                // Pokud atribut není nastaven, výchozí je "0 0 0"
+                const heightInMeters = parseFloat(heightSlider.value) / 100;
                 let currentTranslation = modelViewerElement.getAttribute('translation');
                 let parts = currentTranslation ? currentTranslation.split(' ').map(Number) : [0, 0, 0];
-                
-                // Aktualizace Y souřadnice (index 1)
                 parts[1] = heightInMeters;
-                
-                // Nastavení nové pozice modelu
                 modelViewerElement.setAttribute('translation', parts.join(' '));
             }
         });
@@ -634,8 +644,9 @@
 
         // --- Posluchače událostí pro <model-viewer> ---
         modelViewerElement.addEventListener('load', () => {
-            loadingMessage.style.display = 'none'; // Skryjeme zprávu o načítání po úspěšném načtení modelu
-            errorMessage.style.display = 'none'; // Vymažeme případné předchozí chybové zprávy
+            loadingMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            arButton.disabled = false;
         });
 
         modelViewerElement.addEventListener('error', (event) => {
@@ -645,7 +656,6 @@
             console.error('Model-viewer: Chyba při načítání modelu:', event);
         });
 
-        // Přidáme posluchač pro sledování průběhu načítání
         modelViewerElement.addEventListener('progress', (event) => {
             if (event.detail.totalBytes) {
                 const loaded = event.detail.receivedBytes;
@@ -653,60 +663,18 @@
                 const percentage = Math.round((loaded / total) * 100);
                 loadingMessage.textContent = `Načítání modelu... ${percentage}%`;
             } else {
-                loadingMessage.textContent = `Načítání modelu...`; // Zobrazí se, pokud totalBytes není k dispozici
+                loadingMessage.textContent = `Načítání modelu...`;
             }
-            loadingMessage.style.display = 'block'; // Zajištění, že zpráva je viditelná během načítání
+            loadingMessage.style.display = 'block';
         });
         // --- Konec posluchačů událostí ---
 
 
-        // Inicializace Three.js scény a generování tlačítek při načtení stránky
+        // Inicializace při načtení stránky
         document.addEventListener('DOMContentLoaded', () => {
-            // Generujeme tlačítka hned na začátku, aby byla vždy viditelná
-            generateModelButtons();
-
-            // Kontrola, zda je Three.js načten
-            if (typeof THREE === 'undefined') {
-                console.error("THREE.js knihovna nebyla načtena. Ujistěte se, že 'three.min.js' je ve správné složce a je správně odkazován.");
-                errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Knihovna THREE.js nebyla nalezena.<br>" +
-                                         "Ujistěte se, že jste stáhli soubor '<code>three.min.js</code>' (a všechny ostatní knihovny) " +
-                                         "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.";
-                errorMessage.style.display = 'block';
-                // Zakážeme všechna tlačítka, pokud Three.js není k dispozici
-                modelGrid.querySelectorAll('.model-button').forEach(button => button.disabled = true);
-                return; // Zastavíme další inicializaci, pokud chybí základní knihovna
-            }
-
-            // Kontrola, zda je <model-viewer> zaregistrován jako vlastní element
-            // Tato kontrola se provádí až po DOMContentLoaded, aby se zajistilo, že skripty měly čas se načíst.
-            // Pokud se ani po tomto čase komponenta neregistruje, je problém v načítání JS souborů pro model-viewer.
-            setTimeout(() => { // Dáme komponentě malou chvíli na registraci
-                if (typeof customElements === 'undefined' || !customElements.get('model-viewer')) {
-                    console.error("Web komponenta <model-viewer> nebyla zaregistrována. Ujistěte se, že 'model-viewer.min.js' a 'model-viewer-umd.js' jsou správně načteny.");
-                    errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Komponenta pro 3D prohlížeč (AR) nebyla nalezena.<br>" +
-                                             "Ujistěte se, že jste stáhli soubory '<code>model-viewer.min.js</code>' a '<code>model-viewer-umd.js</code>' " +
-                                             "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.<br>" +
-                                             "AR funkce nebude dostupná.";
-                    errorMessage.style.display = 'block';
-                    // Zakážeme pouze GLB tlačítka, pokud model-viewer nefunguje
-                    models.forEach((model, index) => {
-                        if (model.type === 'glb') {
-                            const button = modelGrid.children[index];
-                            if (button) { // Ujistíme se, že tlačítko existuje
-                                button.disabled = true;
-                                button.title = "AR prohlížeč není k dispozici";
-                            }
-                        }
-                    });
-                    // Nezastavujeme celou inicializaci, protože OBJ/ZIP mohou stále fungovat přes Three.js
-                } else {
-                    // console.log("Web komponenta <model-viewer> úspěšně zaregistrována."); // Odstraněno z konzole
-                }
-            }, 500); // Malé zpoždění pro jistotu, že se modul stihl zaregistrovat
-
-
-            initThreeJS(); // Three.js inicializujeme vždy, protože ho můžeme potřebovat
-            // generateModelButtons(); - Už se volá na začátku
+            initThreeJS(); // Three.js inicializujeme vždy
+            generateModelButtons(); // Generujeme tlačítka poprvé
+            // updateButtonTooltips(); // Již voláno uvnitř generateModelButtons
         });
     </script>
 </body>
