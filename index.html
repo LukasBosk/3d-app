@@ -4,29 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Muzeum regionu Boskovicka 3D prohlížeč</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4285f4"/>
     <script src="./tailwind.min.js"></script> 
     <style>
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 20px;
-            /* Původní background-color odstraníme nebo zakomentujeme */
-            /* background-color: #f0f2f5; */
-            background-image: url('./pozadi.jpg'); /* Cesta k obrázku pozadi.jpg */
-            background-size: cover; /* Pokryje celou plochu, ořízne, pokud je potřeba */
-            background-attachment: fixed; /* Zajišťuje, že se pozadí nebude posouvat s obsahem */
-            background-position: center center; /* Vycentruje obrázek */
+            background-image: url('./pozadi.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
             color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh; /* Zajišťuje, že body zabírá celou výšku viewportu */
+            min-height: 100vh;
             box-sizing: border-box;
         }
         .container {
             width: 100%;
-            max-width: 700px; /* Větší max-width pro 3D scénu */
-            background-color: rgba(255, 255, 255, 0); /* Zcela průhledné bílé pozadí (výchozí) */
+            max-width: 700px;
+            background-color: rgba(255, 255, 255, 0);
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -34,40 +34,40 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            transition: background-color 0.5s ease-in-out; /* Plynulá animace změny barvy pozadí */
+            transition: background-color 0.5s ease-in-out;
         }
         .header {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px; /* Mezera mezi logem a nadpisem */
+            gap: 15px;
             margin-bottom: 10px;
         }
         .header img {
-            max-height: 120px; /* Logo dvakrát tak veliké (původně 60px) */
+            max-height: 120px;
             width: auto;
-            border-radius: 8px; /* Zaoblené rohy loga */
+            border-radius: 8px;
         }
         h1 {
-            color: white; /* Barva písma bílá */
-            font-size: 7.5em; /* Větší nadpis (původně 2.5em * 3) */
-            font-weight: bold; /* Tučné písmo */
-            margin: 0; /* Odstranění výchozího marginu */
+            color: white;
+            font-size: 7.5em;
+            font-weight: bold;
+            margin: 0;
         }
         p {
-            color: white; /* Nastaveno na bílou barvu */
+            color: white;
             margin-bottom: 20px;
             font-size: 1.1em;
-            font-weight: bold; /* Nastaveno na tučné písmo */
+            font-weight: bold;
         }
         .model-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Změněno z 220px na 250px */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
         }
         .model-button {
-            background-color: rgba(66, 133, 244, 0.5); /* 50% průhlednost */
+            background-color: rgba(66, 133, 244, 0.5);
             color: white;
             padding: 15px 10px;
             border: none;
@@ -82,7 +82,7 @@
             text-overflow: ellipsis;
         }
         .model-button:hover {
-            background-color: #357ae8; /* Plná barva při najetí myši */
+            background-color: #357ae8;
             transform: translateY(-2px);
         }
         .model-button:active {
@@ -94,22 +94,21 @@
             color: #f4b400;
             font-weight: bold;
             margin-top: 10px;
-            display: none; /* Skryté na začátku */
+            display: none;
         }
         #errorMessage {
             color: #ea4335;
             font-weight: bold;
             margin-top: 10px;
-            display: none; /* Skryté na začátku */
+            display: none;
         }
 
         #canvasContainer, #modelViewerElement {
             width: 100%;
-            height: 500px; /* Pevná výška pro 3D canvas / model-viewer */
-            background-color: transparent; /* Průhledné pozadí pro 3D canvas */
+            height: 500px;
+            background-color: transparent;
             border-radius: 10px;
-            overflow: hidden; /* Zajištění, že obsah nepřeteče */
-            /* display: none; je nyní řízeno JavaScriptem */
+            overflow: hidden;
             justify-content: center;
             align-items: center;
             position: relative;
@@ -125,11 +124,11 @@
             justify-content: center;
             gap: 15px;
             margin-top: 20px;
-            flex-wrap: wrap; /* Pro responzivitu, pokud je hodně ovládacích prvků */
+            flex-wrap: wrap;
         }
 
         .back-button, .ar-button {
-            background-color: rgba(244, 180, 0, 0.5); /* 50% průhlednost */
+            background-color: rgba(244, 180, 0, 0.5);
             color: white;
             padding: 15px 25px;
             border: none;
@@ -141,7 +140,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .back-button:hover, .ar-button:hover:not(:disabled) {
-            background-color: #e0a300; /* Plná barva při najetí myši */
+            background-color: #e0a300;
             transform: translateY(-2px);
         }
         .back-button:active, .ar-button:active:not(:disabled) {
@@ -174,12 +173,12 @@
             <p>Vyberte 3D model, který chcete prozkoumat.</p>
 
             <div class="model-grid" id="modelGrid">
-                </div>
+            </div>
         </div>
 
         <div id="modelViewerSection" style="display: none; flex-direction: column; align-items: center;">
             <div id="canvasContainer" style="display: none;">
-                </div>
+            </div>
             <model-viewer id="modelViewerElement"
                           ar
                           ar-modes="webxr scene-viewer quick-look"
@@ -187,7 +186,8 @@
                           environment-intensity="0" 
                           shadow-intensity="0" 
                           camera-orbit="0deg 75deg 2.5m"  
-                          ar-placement="floor"        style="width: 100%; height: 500px;">
+                          ar-placement="floor"
+                          style="width: 100%; height: 500px;">
             </model-viewer>
 
             <div id="loadingMessage">Načítání modelu...</div>
@@ -201,11 +201,9 @@
     </div>
 
     <script>
-        // Three.js scéna, kamera a renderer
         let scene, camera, renderer, controls;
-        let currentModelObject = null; // Store the Three.js model object
+        let currentModelObject = null;
 
-        // Získání DOM elementů
         const modelListSection = document.getElementById('modelListSection');
         const modelViewerSection = document.getElementById('modelViewerSection');
         const modelGrid = document.getElementById('modelGrid');
@@ -215,9 +213,8 @@
         const errorMessage = document.getElementById('errorMessage');
         const backButton = document.getElementById('backButton');
         const arButton = document.getElementById('arButton');
-        const container = document.querySelector('.container'); // Získání elementu kontejneru
+        const container = document.querySelector('.container');
 
-        // Definice modelů s názvy, cestami a typy
         const models = [
             { name: "Dláto", path: "./Dlato.glb", type: "glb" },
             { name: "Dláto s tulejí", path: "./Dlatostuleji.glb", type: "glb" },
@@ -233,15 +230,8 @@
             { name: "Depot Jabloňany", path: "./jablonany.glb", type: "glb" },
             { name: "Depot Boskovice úr. 1", path: "./boskovice.glb", type: "glb" },
             { name: "Depot Boskovice úr. 2", path: "./depotboskovice2.glb", type: "glb" }
-            // Pokud jste měli nějaké OBJ nebo ZIP modely, můžete je přidat zpět v tomto formátu:
-            // { name: "Ukázkový OBJ", path: "./ukazka.obj", type: "obj" },
-            // { name: "Ukázkový ZIP", path: "./ukazka.zip", type: "zip" }
         ];
 
-        /**
-         * Inicializuje Three.js scénu, kameru a renderer.
-         * Tato inicializace je potřeba pro OBJ/ZIP modely.
-         */
         function initThreeJS() {
             if (typeof THREE === 'undefined') {
                 console.error("THREE.js knihovna není dostupná. Three.js modely (OBJ/ZIP) nebudou fungovat.");
@@ -295,7 +285,7 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            if (canvasContainer.style.display === 'flex') { // Renderujeme pouze, když je canvas viditelný
+            if (canvasContainer.style.display === 'flex') {
                 controls.update();
                 renderer.render(scene, camera);
             }
@@ -306,7 +296,6 @@
             loadingMessage.textContent = 'Načítání modelu...';
             errorMessage.style.display = 'none';
 
-            // Reset container transparency when a new model starts loading
             container.style.backgroundColor = 'rgba(255, 255, 255, 0)';
 
             if (currentModelObject) {
@@ -334,7 +323,7 @@
                         scene.add(currentModelObject);
                         fitCameraToModel(currentModelObject, camera, controls);
                         loadingMessage.style.display = 'none';
-                        container.style.backgroundColor = 'rgb(255, 255, 255)'; // Plně neprůhledné bílé pozadí po načtení
+                        container.style.backgroundColor = 'rgb(255, 255, 255)';
                     }, undefined, (error) => {
                         console.error('Chyba při načítání OBJ modelu:', error);
                         errorMessage.textContent = 'Chyba při načítání OBJ modelu. (Poznámka: OBJ modely bez .mtl souborů nemusí mít textury/barvy)';
@@ -398,7 +387,7 @@
                     scene.add(currentModelObject);
                     fitCameraToModel(currentModelObject, camera, controls);
                     loadingMessage.style.display = 'none';
-                    container.style.backgroundColor = 'rgb(255, 255, 255)'; // Plně neprůhledné bílé pozadí po načtení
+                    container.style.backgroundColor = 'rgb(255, 255, 255)';
 
                 } else {
                     errorMessage.textContent = 'Neočekávaný formát souboru pro Three.js. Měl by být .obj nebo .zip.';
@@ -413,13 +402,11 @@
             }
         }
 
-        // Helper function to center the model geometry
         function centerModelGeometry(object) {
             const box = new THREE.Box3().setFromObject(object);
             box.getCenter(object.position).negate();
         }
 
-        // Helper function to fit camera to model
         function fitCameraToModel(object, camera, controls) {
             const box = new THREE.Box3().setFromObject(object);
             const size = box.getSize(new THREE.Vector3());
@@ -428,7 +415,7 @@
             const fov = camera.fov * (Math.PI / 180);
             let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
 
-            cameraZ *= 1.2; // Add some padding
+            cameraZ *= 1.2;
 
             camera.position.set(0, 0, cameraZ);
             camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -437,7 +424,6 @@
             controls.update();
         }
 
-        // Helper function to dispose of Three.js materials
         function cleanMaterial(material) {
             if (Array.isArray(material)) {
                 for (const mat of material) {
@@ -458,41 +444,35 @@
             }
         }
 
-        /**
-         * Zpracuje kliknutí na tlačítko modelu.
-         * @param {object} model - Objekt modelu s názvem, cestou a typem.
-         */
         function handleModelClick(model) {
             modelListSection.style.display = 'none';
             modelViewerSection.style.display = 'flex';
 
             loadingMessage.style.display = 'block';
             errorMessage.style.display = 'none';
-            container.style.backgroundColor = 'rgba(255, 255, 255, 0)'; // Reset kontejneru při startu načítání
+            container.style.backgroundColor = 'rgba(255, 255, 255, 0)';
 
-            // Vyčistíme model ze scény Three.js, pokud byl použit
             if (currentModelObject) {
                 scene.remove(currentModelObject);
                 currentModelObject = null;
             }
 
-            // Podle typu modelu se rozhodneme, který prohlížeč použít
             if (model.type === 'glb') {
-                canvasContainer.style.display = 'none'; // Skrýt Three.js canvas
-                modelViewerElement.style.display = 'block'; // Zobrazit model-viewer
+                canvasContainer.style.display = 'none';
+                modelViewerElement.style.display = 'block';
 
                 modelViewerElement.src = model.path;
                 modelViewerElement.alt = model.name;
                 loadingMessage.textContent = 'Načítání 3D modelu (GLB)...';
-                arButton.disabled = true; // Zakážeme AR tlačítko, dokud se model nenačte
-                arButton.title = ""; // Vymaže tooltip
+                arButton.disabled = true;
+                arButton.title = "";
             } else if (model.type === 'obj' || model.type === 'zip') {
-                modelViewerElement.style.display = 'none'; // Skrýt model-viewer
-                canvasContainer.style.display = 'flex'; // Zobrazit Three.js canvas
+                modelViewerElement.style.display = 'none';
+                canvasContainer.style.display = 'flex';
 
                 loadingMessage.textContent = `Načítání 3D modelu (${model.type.toUpperCase()})...`;
                 loadModelIntoThreeJS(model.path);
-                arButton.disabled = true; // AR není pro OBJ/ZIP modely k dispozici
+                arButton.disabled = true;
                 arButton.title = "AR není pro OBJ/ZIP modely dostupná";
             } else {
                 errorMessage.textContent = 'Nepodporovaný typ souboru modelu.';
@@ -506,9 +486,8 @@
         function showModelList() {
             modelViewerSection.style.display = 'none';
             modelListSection.style.display = 'block';
-            container.style.backgroundColor = 'rgba(255, 255, 255, 0)'; // Zcela průhledné pozadí po návratu
+            container.style.backgroundColor = 'rgba(255, 255, 255, 0)';
 
-            // Vyčistíme model ze scény Three.js, pokud byl použit
             if (currentModelObject) {
                 scene.remove(currentModelObject);
                 currentModelObject.traverse(object => {
@@ -523,7 +502,6 @@
                 });
                 currentModelObject = null;
             }
-            // Resetujeme kameru a ovládání Three.js do výchozího stavu
             if (camera && controls) {
                 camera.position.set(0, 0, 5);
                 camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -531,22 +509,17 @@
                 controls.update();
             }
 
-            // Vyčistíme <model-viewer> a ujistíme se, že je skrytý
             modelViewerElement.src = '';
             modelViewerElement.style.display = 'none';
-            arButton.disabled = true; // Zakažte AR tlačítko, když se vrátíte na seznam
-            arButton.title = ""; // Vymaže tooltip
+            arButton.disabled = true;
+            arButton.title = "";
 
-            // Skryjeme zprávy o načítání/chybách
             loadingMessage.style.display = 'none';
             errorMessage.style.display = 'none';
         }
 
-        /**
-         * Generuje tlačítka modelů na základě pole 'models'.
-         */
         function generateModelButtons() {
-            modelGrid.innerHTML = ''; // Vyčistíme mřížku před generováním
+            modelGrid.innerHTML = '';
             models.forEach(model => {
                 const button = document.createElement('button');
                 button.className = 'model-button';
@@ -558,12 +531,9 @@
             });
         }
 
-        // Posluchač událostí pro tlačítko zpět
         backButton.addEventListener('click', showModelList);
 
-        // Posluchač událostí pro tlačítko AR
         arButton.addEventListener('click', async () => {
-            // AR je možné pouze, pokud je načten GLB model a zařízení ho podporuje
             if (modelViewerElement && modelViewerElement.canActivateAR) {
                 modelViewerElement.activateAR();
             } else {
@@ -572,15 +542,13 @@
             }
         });
 
-        // --- Posluchače událostí pro <model-viewer> ---
         modelViewerElement.addEventListener('load', () => {
             loadingMessage.style.display = 'none';
             errorMessage.style.display = 'none';
-            // Pokud je načten GLB model, povolíme AR tlačítko
             if (modelViewerElement.src.endsWith('.glb')) {
                 arButton.disabled = false;
                 arButton.title = "";
-                container.style.backgroundColor = 'rgb(255, 255, 255)'; // Plně neprůhledné bílé pozadí po načtení
+                container.style.backgroundColor = 'rgb(255, 255, 255)';
             }
         });
 
@@ -589,9 +557,9 @@
             errorMessage.textContent = 'Chyba při načítání modelu. Zkuste jiný model nebo zkontrolujte soubor.';
             errorMessage.style.display = 'block';
             console.error('Model-viewer: Chyba při načítání modelu:', event);
-            arButton.disabled = true; // V případě chyby AR tlačítko zakážeme
+            arButton.disabled = true;
             arButton.title = "Chyba při načítání modelu, AR nedostupná";
-            container.style.backgroundColor = 'rgba(255, 255, 255, 0)'; // Reset průhlednosti v případě chyby
+            container.style.backgroundColor = 'rgba(255, 255, 255, 0)';
         });
 
         modelViewerElement.addEventListener('progress', (event) => {
@@ -605,15 +573,30 @@
             }
             loadingMessage.style.display = 'block';
         });
-        // --- Konec posluchačů událostí ---
+
+        // KÓD PRO REGISTRACI SERVICE WORKERU
+        // Tato část by měla být umístěna na konci souboru index.html nebo v samostatném skriptu
+        // spuštěném po načtení DOM.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker zaregistrován s rozsahem: ', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.error('Registrace Service Workeru selhala: ', error);
+                        errorMessage.innerHTML = "<strong>CHYBA OFFLINE:</strong> Registrace Service Workeru selhala.<br>" +
+                                                 "Ujistěte se, že stránka běží přes HTTPS a soubor '<code>service-worker.js</code>' je ve stejné složce.";
+                        errorMessage.style.display = 'block';
+                    });
+            });
+        }
 
 
-        // Inicializace při načtení stránky
         document.addEventListener('DOMContentLoaded', () => {
-            initThreeJS(); // Three.js inicializujeme vždy, protože ho můžeme potřebovat
-            generateModelButtons(); // Generujeme tlačítka modelů
+            initThreeJS();
+            generateModelButtons();
 
-            // Důležitá kontrola pro model-viewer
             setTimeout(() => {
                 if (!customElements.get('model-viewer')) {
                     errorMessage.innerHTML = "<strong>CHYBA NAČÍTÁNÍ:</strong> Web komponenta `model-viewer` nebyla nalezena.<br>" +
@@ -621,18 +604,17 @@
                                              "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.<br>" +
                                              "AR funkce nebude dostupná.";
                     errorMessage.style.display = 'block';
-                    // Zakážeme pouze GLB tlačítka, pokud model-viewer nefunguje
                     models.forEach((model, index) => {
                         if (model.type === 'glb') {
                             const button = modelGrid.children[index];
-                            if (button) { // Ujistíme se, že tlačítko existuje
+                            if (button) {
                                 button.disabled = true;
                                 button.title = "AR prohlížeč není k dispozici";
                             }
                         }
                     });
                 }
-            }, 500); // Malé zpoždění pro jistotu, že se modul stihl zaregistrovat
+            }, 500);
         });
     </script>
 </body>
