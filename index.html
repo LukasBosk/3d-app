@@ -208,7 +208,7 @@
                           environment-intensity="0" 
                           shadow-intensity="0" 
                           camera-orbit="0deg 75deg 2.5m"  
-                          ar-placement="floor"        ar-scale="fixed"            scale="0.5 0.5 0.5"         style="width: 100%; height: 500px;">
+                          ar-placement="floor"        scale="0.25 0.25 0.25"         style="width: 100%; height: 500px;">
             </model-viewer>
 
             <div id="loadingMessage">Načítání modelu...</div>
@@ -496,7 +496,6 @@
                     canvasContainer.style.display = 'none'; // Skryjeme Three.js canvas
                     modelViewerElement.style.display = 'block'; // Zobrazíme model-viewer
                     arButton.disabled = true; // Zakažte AR tlačítko, dokud se model nenačte
-                    // Odstraněn kód pro zobrazení a reset posuvníku výšky
                     
                     modelViewerElement.src = model.path;
                     modelViewerElement.alt = model.name;
@@ -540,7 +539,6 @@
             modelViewerElement.style.display = 'none';
             arButton.disabled = true;
             modelViewerElement.removeAttribute('data-auto-ar'); // Odstraníme značku auto-AR
-            // Odstraněn kód pro skrytí a reset posuvníku výšky
 
             // Skryjeme zprávy o načítání/chybách
             loadingMessage.style.display = 'none';
