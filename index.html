@@ -118,6 +118,7 @@
             justify-content: center;
             gap: 15px;
             margin-top: 20px;
+            flex-wrap: wrap; /* Pro responzivitu, pokud je hodně ovládacích prvků */
         }
 
         .back-button, .ar-button {
@@ -206,7 +207,8 @@
                           camera-controls
                           environment-intensity="0" 
                           shadow-intensity="0" 
-                          camera-orbit="0deg 75deg 2.5m"  style="width: 100%; height: 500px;">
+                          camera-orbit="0deg 75deg 2.5m"  
+                          ar-placement="floor"        ar-scale="fixed"            scale="0.5 0.5 0.5"         style="width: 100%; height: 500px;">
             </model-viewer>
 
             <div id="loadingMessage">Načítání modelu...</div>
@@ -235,7 +237,6 @@
         const errorMessage = document.getElementById('errorMessage');
         const backButton = document.getElementById('backButton');
         const arButton = document.getElementById('arButton');
-        // Odstraněny reference na heightControl a heightSlider
 
         // Definice modelů s názvy, cestami a typy
         const models = [
@@ -448,12 +449,6 @@
             controls.update();
         }
 
-        function centerModelGeometry(object) {
-            const box = new THREE.Box3().setFromObject(object);
-            const center = box.getCenter(new THREE.Vector3());
-            object.position.sub(center);
-        }
-
         function cleanMaterial(material) {
             if (Array.isArray(material)) {
                 for (const mat of material) {
@@ -477,7 +472,7 @@
         /**
          * Zpracuje kliknutí na tlačítko modelu na základě aktuálního režimu.
          * @param {object} model - Objekt modelu s názvem, cestou a typem.
-         * @param {string} mode - '3d' pro Sketchfab, 'ar' pro GLB/AR.
+         * @param {string} mode - '3d' pro Sketchfab, 'ar' pro rozšířenou realitu (GLB).
          */
         function handleModelClick(model, mode) {
             if (mode === '3d') {
@@ -501,9 +496,8 @@
                     canvasContainer.style.display = 'none'; // Skryjeme Three.js canvas
                     modelViewerElement.style.display = 'block'; // Zobrazíme model-viewer
                     arButton.disabled = true; // Zakažte AR tlačítko, dokud se model nenačte
-                    // Odstraněn kód pro zobrazení a reset posuvníku
-                    modelViewerElement.setAttribute('translation', '0 0 0'); // Resetujeme pozici modelu v AR
-
+                    // Odstraněn kód pro zobrazení a reset posuvníku výšky
+                    
                     modelViewerElement.src = model.path;
                     modelViewerElement.alt = model.name;
                     modelViewerElement.setAttribute('data-auto-ar', 'true'); // Nastavíme značku pro auto-aktivaci AR
@@ -546,12 +540,11 @@
             modelViewerElement.style.display = 'none';
             arButton.disabled = true;
             modelViewerElement.removeAttribute('data-auto-ar'); // Odstraníme značku auto-AR
+            // Odstraněn kód pro skrytí a reset posuvníku výšky
 
             // Skryjeme zprávy o načítání/chybách
             loadingMessage.style.display = 'none';
             errorMessage.style.display = 'none';
-
-            // Odstraněn kód pro skrytí a reset posuvníku
             
             generateModelButtons(); // Regenerate buttons to reflect current mode
         }
@@ -615,9 +608,6 @@
                 errorMessage.style.display = 'block';
             }
         });
-
-        // Odstraněn posluchač událostí pro posuvník výšky
-
 
         // --- Posluchače událostí pro <model-viewer> ---
         modelViewerElement.addEventListener('load', () => {
