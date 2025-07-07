@@ -69,7 +69,7 @@
             font-size: 1.1em;
             font-weight: bold;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-: 0 2px 5px rgba(0,0,0,0.2);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -80,7 +80,7 @@
         }
         .model-button:active {
             transform: translateY(0);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         #loadingMessage {
@@ -131,7 +131,7 @@
             font-size: 1.1em;
             font-weight: bold;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-: 0 2px 5px rgba(0,0,0,0.2);
         }
         .back-button:hover, .ar-button:hover:not(:disabled) {
             background-color: #e0a300;
@@ -139,12 +139,12 @@
         }
         .back-button:active, .ar-button:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-: 0 1px 3px rgba(0,0,0,0.2);
         }
         .ar-button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
-            box-shadow: none;
+            box-: none;
             transform: none;
         }
     </style>
@@ -209,29 +209,27 @@
         const backButton = document.getElementById('backButton');
         const arButton = document.getElementById('arButton');
 
-        // Definice modelů s názvy, cestami ZIP a GLB
-        // DŮLEŽITÉ: Pokud model nemá 'zipPath', automaticky se pro hlavní zobrazení použije 'glbPath' (pokud existuje).
-        // GLB cesta je vždy pro AR.
+        // Definice modelů s názvy, cestami a typy
         const models = [
-            { name: "Dláto", zipPath: "./Dlato.zip", glbPath: "./Dlato.glb" },
-            { name: "Dláto s tulejí", zipPath: "./Dlatostuleji.zip", glbPath: "./Dlatostuleji.glb" },
-            { name: "Kladívko", zipPath: "./Kladivko.zip", glbPath: "./Kladivko.glb" },
-            { name: "Náramek", zipPath: "./Naramek.zip", glbPath: "./Naramek.glb" },
-            { name: "Sekera s tulejí", zipPath: "./Sekera.zip", glbPath: "./Sekera.glb" },
-            { name: "Srp", zipPath: "./Srp.zip", glbPath: "./Srp.glb" },
-            { name: "Tordovaný kruh", zipPath: "./Tordovanykruh.zip", glbPath: "./Tordovanykruh.glb" },
-            { name: "Udidlo", zipPath: "./Udidlo.zip", glbPath: "./Udidlo.glb" },
-            { name: "Lunicovitý závěsek", zipPath: "./Zavesek1.zip", glbPath: "./Zavesek1.glb" },
-            { name: "Kolečkovitý závěsek", zipPath: "./Zavesek2.zip", glbPath: "./Zavesek2.glb" },
-            { name: "Závěsek", zipPath: "./Zavesek3.zip", glbPath: "./Zavesek3.glb" },
-            { name: "Depot Jabloňany", zipPath: "./jablonany.zip", glbPath: "./jablonany.glb" },
-            { name: "Depot Boskovice úr. 1", zipPath: "./boskovice.zip", glbPath: "./boskovice.glb" },
-            { name: "Depot Boskovice úr. 2", zipPath: "./depotboskovice2.zip", glbPath: "./depotboskovice2.glb" }
-            // Příklad modelu jen s GLB, který se pro prohlížení načte do model-vieweru
-            // { name: "Model jen GLB", glbPath: "./jen_glb_model.glb" }
+            { name: "Dláto", path: "./Dlato.glb", type: "glb" },
+            { name: "Dláto s tulejí", path: "./Dlatostuleji.glb", type: "glb" },
+            { name: "Kladívko", path: "./Kladivko.glb", type: "glb" },
+            { name: "Náramek", path: "./Naramek.glb", type: "glb" },
+            { name: "Sekera s tulejí", path: "./Sekera.glb", type: "glb" },
+            { name: "Srp", path: "./Srp.glb", type: "glb" },
+            { name: "Tordovaný kruh", path: "./Tordovanykruh.glb", type: "glb" },
+            { name: "Udidlo", path: "./Udidlo.glb", type: "glb" },
+            { name: "Lunicovitý závěsek", path: "./Zavesek1.glb", type: "glb" },
+            { name: "Kolečkovitý závěsek", path: "./Zavesek2.glb", type: "glb" },
+            { name: "Závěsek", path: "./Zavesek3.glb", type: "glb" },
+            { name: "Depot Jabloňany", path: "./jablonany.glb", type: "glb" },
+            { name: "Depot Boskovice úr. 1", path: "./boskovice.glb", type: "glb" },
+            { name: "Depot Boskovice úr. 2", path: "./depotboskovice2.glb", type: "glb" }
+            // Příklad pro OBJ model (musíte mít OBJ a MTL soubory ve stejné složce, případně ZIP)
+            // { name: "Ukázkový OBJ", path: "./model.obj", type: "obj" }, 
+            // Příklad pro ZIP model (musí obsahovat OBJ a MTL/textury)
+            // { name: "Ukázkový ZIP", path: "./model.zip", type: "zip" }
         ];
-
-        let currentSelectedModel = null; // Nová globální proměnná pro uložení aktuálně vybraného modelu
 
         /**
          * Inicializuje Three.js scénu, kameru a renderer.
@@ -450,48 +448,33 @@
 
         /**
          * Zpracuje kliknutí na tlačítko modelu.
-         * @param {object} model - Objekt modelu s názvem, cestou ZIP a cestou GLB.
+         * @param {object} model - Objekt modelu s názvem, cestou a typem.
          */
         function handleModelClick(model) {
-            currentSelectedModel = model; // Uložení aktuálně vybraného modelu
-
             modelListSection.style.display = 'none';
             modelViewerSection.style.display = 'flex'; // Zobrazit sekci prohlížeče
 
             loadingMessage.style.display = 'block';
+            loadingMessage.textContent = 'Načítání modelu...';
             errorMessage.style.display = 'none';
 
-            // AR tlačítko je povoleno, pouze pokud je k dispozici GLB cesta
-            arButton.disabled = !model.glbPath;
-            arButton.title = model.glbPath ? "" : "AR není pro tento model dostupná (chybí GLB soubor)";
+            // Skryjeme oba prohlížeče na začátku
+            canvasContainer.style.display = 'none';
+            modelViewerElement.style.display = 'none';
+            arButton.disabled = true; // Zakážeme AR tlačítko, dokud se nenačte GLB model
 
-            if (model.zipPath) {
-                // Primární zobrazení: Three.js canvas pro ZIP/OBJ
-                canvasContainer.style.display = 'flex';
-                modelViewerElement.style.display = 'none';
-                loadingMessage.textContent = 'Načítání 3D modelu (ZIP)...';
-                loadModelIntoThreeJS(model.zipPath);
-            } else if (model.glbPath) {
-                // Záložní zobrazení: Model Viewer pro GLB
-                canvasContainer.style.display = 'none';
-                modelViewerElement.style.display = 'block';
-                
-                // Vyprázdní src model-vieweru, aby se správně spustila událost "load"
-                modelViewerElement.src = ''; 
-                // Použijeme setTimeout, aby se DOM aktualizoval před nastavením nového src
-                setTimeout(() => {
-                    modelViewerElement.src = model.glbPath;
-                    modelViewerElement.alt = model.name;
-                    loadingMessage.textContent = 'Načítání 3D modelu (GLB)...';
-                }, 50); // Krátké zpoždění
-                
+            if (model.type === 'glb') {
+                modelViewerElement.src = model.path;
+                modelViewerElement.alt = model.name;
+                modelViewerElement.style.display = 'block'; // Zobrazíme model-viewer
+                // AR tlačítko se povolí v posluchači 'load' události model-viewer
+            } else if (model.type === 'obj' || model.type === 'zip') {
+                canvasContainer.style.display = 'flex'; // Zobrazíme Three.js canvas
+                loadModelIntoThreeJS(model.path);
             } else {
-                // Žádná cesta k modelu není dostupná
-                errorMessage.textContent = 'Pro tento model nejsou dostupné žádné soubory k zobrazení (chybí ZIP i GLB cesta).';
+                errorMessage.textContent = `Nepodporovaný typ souboru: ${model.type}.`;
                 errorMessage.style.display = 'block';
                 loadingMessage.style.display = 'none';
-                arButton.disabled = true; 
-                arButton.title = "Žádný model k zobrazení";
             }
         }
 
@@ -522,18 +505,14 @@
                 controls.update();
             }
 
-            // Vyčistíme <model-viewer> a ujistíme se, že je skrytý
+            // Vyčistíme <model-viewer>
             modelViewerElement.src = '';
             modelViewerElement.style.display = 'none';
-            arButton.disabled = true; // Zakažte AR tlačítko, když se vrátíte na seznam
-            arButton.title = ""; // Vymaže tooltip
-
+            arButton.disabled = true;
 
             // Skryjeme zprávy o načítání/chybách
             loadingMessage.style.display = 'none';
             errorMessage.style.display = 'none';
-
-            currentSelectedModel = null; // Resetujeme vybraný model
         }
 
         /**
@@ -557,58 +536,26 @@
 
         // Posluchač událostí pro tlačítko AR
         arButton.addEventListener('click', async () => {
-            if (!currentSelectedModel || !currentSelectedModel.glbPath) {
-                errorMessage.textContent = "Pro tento model není dostupný GLB soubor pro AR.";
-                errorMessage.style.display = 'block';
-                return;
-            }
-
-            // Přepneme na zobrazení model-viewer
-            canvasContainer.style.display = 'none';
-            modelViewerElement.style.display = 'block';
-
-            // Nastavíme zdroj pro model-viewer na GLB soubor (pokud již není načten)
-            if (modelViewerElement.src !== currentSelectedModel.glbPath) {
-                modelViewerElement.src = currentSelectedModel.glbPath;
-                modelViewerElement.alt = currentSelectedModel.name; 
-                loadingMessage.textContent = 'Načítání modelu pro AR...';
-                loadingMessage.style.display = 'block';
-                errorMessage.style.display = 'none';
-            }
-            
-            arButton.disabled = true; // Zakažte tlačítko, dokud se GLB nenačte pro AR
-
-            // Aktivujeme AR. Model-viewer sám počká, dokud se GLB nenačte.
-            try {
+            if (modelViewerElement && modelViewerElement.canActivateAR) {
                 modelViewerElement.activateAR();
-            } catch (error) {
-                console.error('Chyba při aktivaci AR:', error);
+            } else {
                 errorMessage.textContent = "AR nelze aktivovat. Ujistěte se, že stránka běží na HTTPS a vaše zařízení podporuje WebXR.";
                 errorMessage.style.display = 'block';
-                loadingMessage.style.display = 'none';
-                arButton.disabled = false; // Povolte tlačítko zpět, pokud se AR nezpustí
             }
         });
 
         // --- Posluchače událostí pro <model-viewer> ---
-        // Tyto posluchače nyní reagují na načítání GLB, ať už pro hlavní zobrazení nebo pro AR
         modelViewerElement.addEventListener('load', () => {
             loadingMessage.style.display = 'none';
             errorMessage.style.display = 'none';
-            arButton.disabled = false; // Povolíme AR tlačítko, jakmile se GLB model načte
+            arButton.disabled = false; // Povolíme AR tlačítko, pokud se GLB model načetl
         });
 
         modelViewerElement.addEventListener('error', (event) => {
             loadingMessage.style.display = 'none';
-            // Zobrazíme obecnou chybu, pokud GLB selže jako fallback
-            if (!currentSelectedModel.zipPath) { // Pokud se spoléháme na GLB jako hlavní zobrazení
-                errorMessage.textContent = 'Chyba při načítání GLB modelu pro prohlížení. Zkuste jiný model nebo zkontrolujte soubor.';
-            } else { // Pokud GLB selhalo při pokusu o AR
-                errorMessage.textContent = 'Chyba při načítání GLB modelu pro AR. Zkuste jiný model nebo zkontrolujte soubor.';
-            }
+            errorMessage.textContent = 'Chyba při načítání modelu v AR prohlížeči. Zkuste jiný model nebo zkontrolujte soubor.';
             errorMessage.style.display = 'block';
-            console.error('Model-viewer: Chyba při načítání GLB modelu:', event);
-            arButton.disabled = false; 
+            console.error('Model-viewer: Chyba při načítání modelu:', event);
         });
 
         modelViewerElement.addEventListener('progress', (event) => {
@@ -638,8 +585,18 @@
                                              "a umístili je do <strong>stejné složky</strong> jako tento HTML soubor.<br>" +
                                              "AR funkce nebude dostupná.";
                     errorMessage.style.display = 'block';
+                    // Zakážeme pouze GLB tlačítka, pokud model-viewer nefunguje
+                    models.forEach((model, index) => {
+                        if (model.type === 'glb') {
+                            const button = modelGrid.children[index];
+                            if (button) { // Ujistíme se, že tlačítko existuje
+                                button.disabled = true;
+                                button.title = "AR prohlížeč není k dispozici";
+                            }
+                        }
+                    });
                 }
-            }, 500); 
+            }, 500); // Malé zpoždění pro jistotu, že se modul stihl zaregistrovat
         });
     </script>
 </body>
