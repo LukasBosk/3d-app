@@ -160,8 +160,8 @@
     <script src="./MTLLoader.js"></script>
     <script src="./OrbitControls.js"></script>
     <script src="./jszip.min.js"></script>
-    <script type="module" src="./model-viewer.min.js"></script>
-    <script nomodule src="./model-viewer-umd.js"></script>
+    <script type="module" src="./.min.js"></script>
+    <script nomodule src="./-umd.js"></script>
 </head>
 <body>
     <div class="container">
@@ -181,7 +181,7 @@
             </div>
             <model-viewer id="modelViewerElement"
                           ar
-                          ar-modes="webxr"
+                          ar-modes="webxr scene-viewer quick-look"
                           camera-controls
                           environment-intensity="0" 
                           shadow-intensity="0" 
